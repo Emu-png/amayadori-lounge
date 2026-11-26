@@ -813,20 +813,20 @@ const robots=[];
 
 /* ---------- spaces & seats ---------- */
 const SPACES={
-  cafe:{name:'カフェ「雨音」',other:'bar',
+  cafe:{name:'カフェ「雨音」',other:'bar',spawn:2,
     seats:[{name:'窓際の席',pos:new V3(9.15,0,6),yaw:Math.PI/2,drink:new V3(8.42,1.027,6),eye:1.42},
            {name:'テーブル席',pos:new V3(11.6,0,9.66),yaw:0,drink:new V3(11.68,.757,9.04),eye:1.16},
            {name:'カウンター席',pos:new V3(13.75,0,6),yaw:-Math.PI/2,drink:new V3(14.78,1.032,6),eye:1.42}],
     rain:[-4,0,6,.55,false],rainCut:900,rainVol:.06,
-    staff:'店主のユイ',greet:'店主のユイ「いらっしゃいませ。窓際の席がおすすめですよ。雨がよく見えるので」'},
-  bar:{name:'空中バー「宵闇」',other:'cafe',
+    staff:'店主のユイ',greet:'店主のユイ「いらっしゃいませ。今夜も雨ですね。どうぞ、ゆっくりしていってください」'},
+  bar:{name:'空中バー「宵闇」',other:'cafe',spawn:1,
     seats:[{name:'手すりの席',pos:new V3(0,52,24.5),yaw:0,drink:new V3(.0,53.057,23.45),eye:1.42},
            {name:'カウンター席',pos:new V3(0,52,31.9),yaw:Math.PI,drink:new V3(0,53.042,33.0),eye:1.42},
            {name:'ソファ席',pos:new V3(-6.0,52,30.5),yaw:-Math.PI/2,drink:new V3(-5.15,52.507,30.5),eye:1.08}],
     rain:[0,36,30,1,true],rainCut:5000,rainVol:.045,
     staff:'バーテンダーのユイ',greet:'バーテンダーのユイ「来てくれたんですね。夜はここでバーテンダーをしているんです。雨の上の特等席へようこそ」'}
 };
-let space='cafe',seatIdx=0;
+let space='cafe',seatIdx=2;
 const fwdOf=y=>new V3(-Math.sin(y),0,-Math.cos(y)),rightOf=y=>new V3(Math.cos(y),0,-Math.sin(y));
 
 /* ---------- 3D UI ---------- */
@@ -870,7 +870,7 @@ const BTNS=[
   {label:()=>breathOn?'深呼吸をやめる':'深呼吸する',sub:'1分',accent:'#3ef2ff',fn:()=>toggleBreath()},
   {label:()=>musicOn?'音楽を止める':'音楽を流す',sub:()=>musicOn?'ON':'OFF',accent:'#3ef2ff',fn:()=>toggleMusic()},
   {label:'席を移る',sub:()=>SPACES[space].seats[(seatIdx+1)%SPACES[space].seats.length].name,accent:'#ff7ab6',fn:()=>goSeat((seatIdx+1)%SPACES[space].seats.length)},
-  {label:()=>SPACES[SPACES[space].other].name+'へ',sub:'移動',accent:'#ff7ab6',fn:()=>goSpace(SPACES[space].other,0)}
+  {label:()=>SPACES[SPACES[space].other].name+'へ',sub:'移動',accent:'#ff7ab6',fn:()=>{const o=SPACES[space].other;goSpace(o,SPACES[o].spawn);}}
 ];
 const uiButtons=BTNS.map((b,i)=>{const bt=makeButton(.44,.056,btnDraw(b.label,b.sub,b.accent),b.fn);bt.mesh.position.set(0,.19-i*.063,0);panel.add(bt.mesh);return bt;});
 function redrawUI(){header.redraw();uiButtons.forEach(b=>b.redraw());}
@@ -1072,7 +1072,7 @@ $('vrbtn').addEventListener('click',async()=>{
 function enter(sp){
   audio.init();active=true;$('menu').hidden=true;
   const flat=!renderer.xr.isPresenting;$('home').hidden=!flat;$('tip').hidden=!flat;
-  space=sp;seatIdx=0;if(drinkObj){scene.remove(drinkObj);drinkObj=null;}
+  space=sp;seatIdx=SPACES[sp].spawn||0;if(drinkObj){scene.remove(drinkObj);drinkObj=null;}
   applySeat();setTimeout(()=>caption(SPACES[sp].greet),700);
   fade={t:0,phase:'in'};blackout.material.opacity=1;
 }
@@ -1114,7 +1114,7 @@ function tick(){
     else{blackout.material.opacity=Math.max(0,1-fade.t/.7);if(fade.t>=.7)fade=null;}}
   renderer.render(scene,camera);
 }
-applySeat();rig.rotation.y=SPACES.cafe.seats[0].yaw+.3;
+applySeat();rig.rotation.y=SPACES.cafe.seats[seatIdx].yaw+.3;
 /* ---------- VRoid staff (staff.glb, VRM 0.0) ---------- */
 const POSE={uaZ:1.25,uaX:.28,uaY:0,laY:1.12,laX:0,laZ:0,hX:0,hY:0,hZ:.15};
 function setupVRM(vrm,base){
