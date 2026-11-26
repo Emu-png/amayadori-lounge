@@ -372,13 +372,16 @@ const rainGeo=new THREE.BufferGeometry();rainGeo.setAttribute('position',new THR
 const rain=new THREE.LineSegments(rainGeo,new THREE.LineBasicMaterial({color:0x9fb8ff,transparent:true,opacity:.3}));
 rain.frustumCulled=false;scene.add(rain);
 
-/* ---------- reflections: small neon/amber environment ---------- */
+/* ---------- reflections: small neon/amber environment (one per space; the café one is dim) ---------- */
+const ENV={};
 (function(){
-  const pm=new THREE.PMREMGenerator(renderer);const es=new THREE.Scene();es.background=new THREE.Color(0x0b0812);
-  const panelE=(col,k,pos,size)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(size[0],size[1]),new THREE.MeshBasicMaterial({color:new THREE.Color(col).multiplyScalar(k),side:THREE.DoubleSide}));m.position.set(pos[0],pos[1],pos[2]);m.lookAt(0,0,0);es.add(m);};
-  panelE(0xffc48a,2.0,[0,6,0],[5,5]);panelE(0xff4fa0,.55,[-7,1.5,1],[2,4]);panelE(0x3ef2ff,.5,[7,1,-2],[2,4]);
-  panelE(0xffe2c0,.9,[0,2,-7],[7,2.2]);panelE(0x6a4cff,.35,[0,1,7],[8,3]);panelE(0x20160f,1,[0,-5,0],[14,14]);
-  scene.environment=pm.fromScene(es,.03).texture;pm.dispose();
+  const pm=new THREE.PMREMGenerator(renderer);
+  function build(k){const es=new THREE.Scene();es.background=new THREE.Color(0x07050b);
+    const panelE=(col,i,pos,size)=>{const m=new THREE.Mesh(new THREE.PlaneGeometry(size[0],size[1]),new THREE.MeshBasicMaterial({color:new THREE.Color(col).multiplyScalar(i*k),side:THREE.DoubleSide}));m.position.set(pos[0],pos[1],pos[2]);m.lookAt(0,0,0);es.add(m);};
+    panelE(0xffc48a,2.0,[0,6,0],[5,5]);panelE(0xff4fa0,.55,[-7,1.5,1],[2,4]);panelE(0x3ef2ff,.5,[7,1,-2],[2,4]);
+    panelE(0xffe2c0,.9,[0,2,-7],[7,2.2]);panelE(0x6a4cff,.35,[0,1,7],[8,3]);panelE(0x20160f,1,[0,-5,0],[14,14]);
+    return pm.fromScene(es,.03).texture;}
+  ENV.cafe=build(.32);ENV.bar=build(.6);pm.dispose();scene.environment=ENV.cafe;
 })();
 
 /* ---------- procedural materials ---------- */
@@ -865,7 +868,7 @@ const robots=[];
   for(const [x,z,ry] of [[9.6,.03,0],[9.6,11.97,Math.PI],[16.9,.03,0]]){const plate=box(.1,.16,.02,x,2.25,z+(ry?-.01:.01),brassM);
     const sh=new THREE.Mesh(new THREE.CylinderGeometry(.06,.08,.14,20,1,true),new THREE.MeshStandardMaterial({color:0xf3e3c8,emissive:0xffb070,emissiveIntensity:.6,side:THREE.DoubleSide,roughness:.8}));
     sh.position.set(x,2.3,z+(ry?-.1:.1));scene.add(sh);const gl=glowSprite(0xffc27a,.9,.45);gl.position.copy(sh.position);scene.add(gl);}
-  const graze=new THREE.PointLight(0xffb070,.9,6,1.6);graze.position.set(17.3,3.2,6);scene.add(graze);
+  const graze=new THREE.PointLight(0xffb070,.55,5,2);graze.position.set(17.3,3.2,6);scene.add(graze);
   for(const z of [0,4,8,12])box(.12,2.4,.1,7.95,2.1,z,metalM); // mullions
   building(13,6,10.4,40,12.4,3.7,'apartment'); // tower above
   // façade sign
@@ -941,17 +944,20 @@ const robots=[];
   blob(8.45,0,6,1.1,12,.35);
   for(const z of [1.5,3.5,6,8.5,10.5])stool(9.15,0,z);
   // bar counter: vertical walnut boards, slab top, brass foot rail
-  // (counter: 0.955 m high, 0.62 m deep top; front face at x=14.7)
+  // (counter: 0.955 m high, 0.62 m deep top; front face at x=15.3; staff aisle ~1.1 m to the back bar)
   const frontM=woodMat(walnutPanel,8*TM,.9*TM,{rough:.45,bump:.01});
   const endM=woodMat(walnutPanel,.6*TM,.9*TM,{rough:.45,bump:.01});
-  const body=sideBlock(.6,.9,8,1,frontM,endM);body.position.set(15,.45,6);scene.add(body);
-  const btop=slab(.66,8.3,.055,.025,walnutTopM);btop.position.set(14.97,.9,6);scene.add(btop);
-  box(.02,.1,8,14.688,.05,6,ironM);
-  box(.02,.02,8,14.67,.87,6,new THREE.MeshBasicMaterial({color:0xffc27a}));
-  const rail=new THREE.Mesh(new THREE.CylinderGeometry(.022,.022,7.8,20),brassM);rail.rotation.x=Math.PI/2;rail.position.set(14.55,.19,6);scene.add(rail);
-  for(let z=2.4;z<=9.6;z+=1.8){const s=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,.15,10),brassM);s.rotation.z=Math.PI/2;s.position.set(14.62,.19,z);scene.add(s);}
-  blob(15,0,6,1.4,9,.5);
-  for(const z of [3.9,4.6,5.3,6,6.7,7.4,8.1])stool(14.32,0,z,.886);
+  const body=sideBlock(.6,.9,8,1,frontM,endM);body.position.set(15.6,.45,6);scene.add(body);
+  const btop=slab(.66,8.3,.055,.025,walnutTopM);btop.position.set(15.57,.9,6);scene.add(btop);
+  box(.02,.1,8,15.288,.05,6,ironM);
+  box(.02,.02,8,15.27,.87,6,new THREE.MeshBasicMaterial({color:0xffc27a}));
+  const rail=new THREE.Mesh(new THREE.CylinderGeometry(.022,.022,7.8,20),brassM);rail.rotation.x=Math.PI/2;rail.position.set(15.15,.19,6);scene.add(rail);
+  for(let z=2.4;z<=9.6;z+=1.8){const s=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,.15,10),brassM);s.rotation.z=Math.PI/2;s.position.set(15.22,.19,z);scene.add(s);}
+  blob(15.6,0,6,1.4,9,.5);
+  for(const z of [3.9,4.6,5.3,6,6.7,7.4,8.1])stool(14.92,0,z,.886);
+  // back bar cabinet under the bottle shelves
+  {const bb=sideBlock(.55,.88,6.9,1,woodMat(walnutPanel,6.9*TM,.88*TM,{rough:.5,bump:.01}),woodMat(walnutPanel,.55*TM,.88*TM,{rough:.5}));bb.position.set(17.33,.44,6);scene.add(bb);
+   const bt=slab(.6,7.0,.04,.01,walnutTopM,.006);bt.position.set(17.32,.88,6);scene.add(bt);blob(17.3,0,6,.9,7.4,.45);}
   // bistro tables
   for(const tz of [3.2,9.0]){bistroTable(11.6,0,tz);bistroChair(11.6,0,tz+.62,0);bistroChair(11.6,0,tz-.62,Math.PI);}
   // shelves + bottles
@@ -966,9 +972,10 @@ const robots=[];
   // (plants are built later by buildPlants)
   for(const z of [2,6,10])pendant(8.9,2.75,z,0xffc27a);
   for(const z of [3.5,8.5])pendant(15,2.75,z,0xffc27a);
-  const l1=new THREE.PointLight(0xffa860,1.4,9,1.2);l1.position.set(9.6,2.6,6);scene.add(l1);
-  const l2=new THREE.PointLight(0xffa860,1.2,8,1.2);l2.position.set(15,2.6,6);scene.add(l2);
-  robots.push(makeBartender({x:15.5,y:0,z:6,ry:-Math.PI/2,style:'bun',outfit:'apron',hairline:.42,skin:0xe8c2a6,skinCss:'#e8c2a6',hairCss:'#2c1b13',browCss:'rgba(60,38,28,.85)',irisCss:'#6b4128',irisDark:'#3a2216',outerCss:'#6e4c34'}));
+  const l1=new THREE.PointLight(0xffa860,.85,5.5,2);l1.position.set(9.4,2.5,6);scene.add(l1);
+  const l2=new THREE.PointLight(0xffa860,.9,5,2);l2.position.set(15.7,2.5,6);scene.add(l2);
+  const l3=new THREE.PointLight(0xffb070,.55,5,2);l3.position.set(11.8,2.4,6);scene.add(l3);
+  robots.push(makeBartender({x:16.06,y:0,z:6,ry:-Math.PI/2,style:'bun',outfit:'apron',hairline:.42,skin:0xe8c2a6,skinCss:'#e8c2a6',hairCss:'#2c1b13',browCss:'rgba(60,38,28,.85)',irisCss:'#6b4128',irisDark:'#3a2216',outerCss:'#6e4c34'}));
 })();
 
 /* ---------- sky terrace 「宵闇」 (center 0,52,30) ---------- */
@@ -1005,13 +1012,14 @@ const robots=[];
    const shelfB=slab(.3,2.4,.03,.005,woodM,.004);shelfB.position.set(5.2,Y+1.6,CZ+9.3);shelfB.rotation.y=Math.PI/2;scene.add(shelfB);
    for(let i=0;i<10;i++){const T2=BOTTLE_TYPES[i%5];const b=new THREE.Mesh(lathe(T2.p,16),new THREE.MeshStandardMaterial({color:T2.tint,transparent:true,opacity:.7,roughness:.1}));b.position.set(4.1+i*.24,Y+1.63,CZ+9.3);scene.add(b);}});}
   // (counter: 0.955 m high, 0.62 m deep top; front face at z=CZ+2.9)
-  const bar=sideBlock(6,.9,.6,5,woodMat(walnutPanel,6*TM,.9*TM,{rough:.45,bump:.01}),woodMat(walnutPanel,.6*TM,.9*TM,{rough:.45}));bar.position.set(0,Y+.45,CZ+3.2);scene.add(bar);
-  const top=slab(.66,6.3,.055,.025,walnutTopM);top.rotation.y=Math.PI/2;top.position.set(0,Y+.9,CZ+3.17);scene.add(top);
-  const bs=new THREE.Mesh(new THREE.BoxGeometry(6,.02,.02),new THREE.MeshBasicMaterial({color:0xff7ab6}));bs.position.set(0,Y+.87,CZ+2.89);scene.add(bs);
-  const rail=new THREE.Mesh(new THREE.CylinderGeometry(.022,.022,5.8,20),brassM);rail.rotation.z=Math.PI/2;rail.position.set(0,Y+.19,CZ+2.75);scene.add(rail);
-  for(let x=-2.4;x<=2.4;x+=1.6){const s=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,.15,10),brassM);s.rotation.x=Math.PI/2;s.position.set(x,Y+.19,CZ+2.82);scene.add(s);}
-  blob(0,Y,CZ+3.2,7,1.4,.5);
-  for(const x of [-1.4,-.7,0,.7,1.4])stool(x,Y,CZ+2.55,.886);
+  const bar=sideBlock(6,.9,.6,5,woodMat(walnutPanel,6*TM,.9*TM,{rough:.45,bump:.01}),woodMat(walnutPanel,.6*TM,.9*TM,{rough:.45}));bar.position.set(0,Y+.45,CZ+4.4);scene.add(bar);
+  {const bb=sideBlock(5.4,.88,.55,5,woodMat(walnutPanel,5.4*TM,.88*TM,{rough:.5,bump:.01}),woodMat(walnutPanel,.55*TM,.88*TM,{rough:.5}));bb.position.set(0,Y+.44,CZ+6.33);scene.add(bb);const bt=slab(.6,5.5,.04,.01,walnutTopM,.006);bt.rotation.y=Math.PI/2;bt.position.set(0,Y+.88,CZ+6.32);scene.add(bt);}
+  const top=slab(.66,6.3,.055,.025,walnutTopM);top.rotation.y=Math.PI/2;top.position.set(0,Y+.9,CZ+4.37);scene.add(top);
+  const bs=new THREE.Mesh(new THREE.BoxGeometry(6,.02,.02),new THREE.MeshBasicMaterial({color:0xff7ab6}));bs.position.set(0,Y+.87,CZ+4.09);scene.add(bs);
+  const rail=new THREE.Mesh(new THREE.CylinderGeometry(.022,.022,5.8,20),brassM);rail.rotation.z=Math.PI/2;rail.position.set(0,Y+.19,CZ+3.95);scene.add(rail);
+  for(let x=-2.4;x<=2.4;x+=1.6){const s=new THREE.Mesh(new THREE.CylinderGeometry(.012,.012,.15,10),brassM);s.rotation.x=Math.PI/2;s.position.set(x,Y+.19,CZ+4.02);scene.add(s);}
+  blob(0,Y,CZ+4.4,7,1.4,.5);
+  for(const x of [-1.4,-.7,0,.7,1.4])stool(x,Y,CZ+3.75,.886);
   for(const y of [1.3,2.0]){const sh=new THREE.Mesh(new THREE.BoxGeometry(5,.04,.3),woodM);sh.position.set(0,Y+y,CZ+6.75);scene.add(sh);
     const led=new THREE.Mesh(new THREE.BoxGeometry(5,.012,.012),new THREE.MeshBasicMaterial({color:0xffb0d8}));led.position.set(0,Y+y-.026,CZ+6.6);scene.add(led);
     for(let x=-2.2;x<=2.2;x+=.55){const gl=glowSprite(0xff9fd0,.5,.3);gl.position.set(x,Y+y+.16,CZ+6.87);scene.add(gl);}
@@ -1041,9 +1049,9 @@ const robots=[];
   for(let i=0;i<=16;i++){const tt=i/16;for(const x of [-6.8,6.8]){const s=new THREE.Sprite(bulbM);s.position.set(x,Y+3.4-Math.sin(tt*Math.PI)*.35,CZ-6.8+tt*13.6);s.scale.set(.3,.3,1);scene.add(s);}}
   // thrusters underneath
   for(const [x,z] of [[-5,CZ-5],[5,CZ-5],[-5,CZ+5],[5,CZ+5]]){const th=glowSprite(0x3ef2ff,2.2,.8);th.position.set(x,Y-.7,z);scene.add(th);}
-  const l1=new THREE.PointLight(0xff8fc8,1.1,12,1.2);l1.position.set(0,Y+3,CZ+1);scene.add(l1);
-  const l2=new THREE.PointLight(0xffb070,1.0,10,1.2);l2.position.set(0,Y+2.6,CZ-5);scene.add(l2);
-  robots.push(makeBartender({x:0,y:Y,z:CZ+3.85,ry:Math.PI,style:'bob',outfit:'vest',hairline:.36,skin:0xedcbb2,skinCss:'#edcbb2',hairCss:'#121015',browCss:'rgba(28,22,24,.9)',irisCss:'#4a3020',irisDark:'#241610',outerCss:'#1b1a1f'}));
+  const l1=new THREE.PointLight(0xff8fc8,.8,11,1.5);l1.position.set(0,Y+3,CZ+2.5);scene.add(l1);
+  const l2=new THREE.PointLight(0xffb070,.7,9,1.5);l2.position.set(0,Y+2.6,CZ-4);scene.add(l2);
+  robots.push(makeBartender({x:0,y:Y,z:CZ+5.0,ry:Math.PI,style:'bob',outfit:'vest',hairline:.36,skin:0xedcbb2,skinCss:'#edcbb2',hairCss:'#121015',browCss:'rgba(28,22,24,.9)',irisCss:'#4a3020',irisDark:'#241610',outerCss:'#1b1a1f'}));
 })();
 
 /* ---------- counter-top props ---------- */
@@ -1105,28 +1113,28 @@ function candle(){const g=new THREE.Group();g.add(new THREE.Mesh(lathe([[0,0],[.
   const f=glowSprite(0xffb050,.07,1);f.position.y=.05;g.add(f);const h=glowSprite(0xff9a40,.25,.35);h.position.y=.05;g.add(h);
   propAnims.push(t=>{const k=.85+Math.sin(t*13)*.08+Math.sin(t*7.3)*.07;f.scale.set(.05*k,.08*k,1);h.material.opacity=.3*k;});return g;}
 function citrus(color,r){const m=new THREE.Mesh(new THREE.SphereGeometry(r,20,14),new THREE.MeshStandardMaterial({color,roughness:.55,bumpMap:beanTex,bumpScale:.0005}));m.scale.set(1,.88,.88);return m;}
-function cafeProps(){const T=.955;
-  put(espressoMachine(),15.0,T,7.9);blob(15.0,T-.001,7.9,.6,.75,.45);
-  put(grinder(),15.12,T,8.7,Math.PI);blob(15.12,T-.001,8.7,.3,.3,.4);
-  put(kettle(),15.14,T,3.95,Math.PI*.8);put(pourOver(),15.0,T,4.38);
-  [[15.17,5.0],[15.17,5.12],[15.06,5.06]].forEach(([x,z])=>put(tumbler(),x,T,z));
-  [[15.15,5.32],[15.15,5.45]].forEach(([x,z])=>put(wineGlass(),x,T,z));
-  {const wg=put(new THREE.Group(),15.04,T,5.22);wg.add(tumbler());wg.add(new THREE.Mesh(lathe([[0,.0137],[.0303,.0137],[.0318,.07],[0,.07]],32),new THREE.MeshStandardMaterial({color:0xdcefff,transparent:true,opacity:.22,roughness:.02,envMapIntensity:1.6})));}
-  const jar=put(new THREE.Group(),15.14,T,3.32);jar.add(new THREE.Mesh(lathe([[0,0],[.05,0],[.052,.15],[.04,.16],[.04,.17],[0,.17]],28),propGlass));
+function cafeProps(){const T=.955,putC=(o,x,y,z,ry)=>put(o,x+.6,y,z,ry);
+  putC(espressoMachine(),15.0,T,7.9);blob(15.6,T-.001,7.9,.6,.75,.45);
+  putC(grinder(),15.12,T,8.7,Math.PI);blob(15.72,T-.001,8.7,.3,.3,.4);
+  putC(kettle(),15.14,T,3.95,Math.PI*.8);putC(pourOver(),15.0,T,4.38);
+  [[15.17,5.0],[15.17,5.12],[15.06,5.06]].forEach(([x,z])=>putC(tumbler(),x,T,z));
+  [[15.15,5.32],[15.15,5.45]].forEach(([x,z])=>putC(wineGlass(),x,T,z));
+  {const wg=putC(new THREE.Group(),15.04,T,5.22);wg.add(tumbler());wg.add(new THREE.Mesh(lathe([[0,.0137],[.0303,.0137],[.0318,.07],[0,.07]],32),new THREE.MeshStandardMaterial({color:0xdcefff,transparent:true,opacity:.22,roughness:.02,envMapIntensity:1.6})));}
+  const jar=putC(new THREE.Group(),15.14,T,3.32);jar.add(new THREE.Mesh(lathe([[0,0],[.05,0],[.052,.15],[.04,.16],[.04,.17],[0,.17]],28),propGlass));
   jar.add(new THREE.Mesh(lathe([[0,.003],[.048,.003],[.048,.11],[0,.11]],20),beanM));const cork=new THREE.Mesh(new THREE.CylinderGeometry(.042,.038,.025,20),new THREE.MeshStandardMaterial({map:propCorkTex,roughness:.9}));cork.position.y=.175;jar.add(cork);
-  const pot=put(new THREE.Group(),14.8,T,2.6);pot.add(new THREE.Mesh(lathe([[0,0],[.04,0],[.05,.07],[0,.07]],20),new THREE.MeshStandardMaterial({color:0xd8cfc0,roughness:.85})));
+  const pot=putC(new THREE.Group(),14.8,T,2.6);pot.add(new THREE.Mesh(lathe([[0,0],[.04,0],[.05,.07],[0,.07]],20),new THREE.MeshStandardMaterial({color:0xd8cfc0,roughness:.85})));
   for(let k=0;k<9;k++){const l=new THREE.Mesh(new THREE.SphereGeometry(.018,10,8),new THREE.MeshStandardMaterial({color:0x5f8a5a,roughness:.6}));const a=k/9*Math.PI*2;l.scale.set(.6,1.4,.6);l.position.set(Math.cos(a)*.02,.085,Math.sin(a)*.02);l.rotation.set(Math.sin(a)*.6,0,-Math.cos(a)*.6);pot.add(l);}
   const card=new THREE.Mesh(new THREE.PlaneGeometry(.1,.14),new THREE.MeshStandardMaterial({map:canvasTex(200,280,(g)=>{g.fillStyle='#f4ede0';g.fillRect(0,0,200,280);g.fillStyle='#3a2416';g.textAlign='center';g.font=`700 22px ${JPFONT}`;g.fillText('雨音',100,46);
     g.font=`14px ${JPFONT}`;['ブレンド　450','ラテ　　　520','焼き菓子　300'].forEach((t,i)=>g.fillText(t,100,100+i*34));g.fillRect(40,62,120,1);}),roughness:.8,side:THREE.DoubleSide}));
-  put(card,14.72,T+.07,5.3,-Math.PI/2).rotation.x=-.25;
-  const sug=put(new THREE.Group(),14.76,T,6.92);sug.add(new THREE.Mesh(lathe([[0,0],[.028,0],[.034,.03],[.033,.055],[0,.055]],24),ceramicW));const sl=new THREE.Mesh(new THREE.SphereGeometry(.03,20,10,0,Math.PI*2,0,Math.PI/2),ceramicW);sl.scale.y=.5;sl.position.y=.055;sug.add(sl);
-  const nap=put(new THREE.Group(),14.78,T,7.18);const nb=new THREE.Mesh(new THREE.BoxGeometry(.06,.07,.1),steelM);nb.position.y=.035;nap.add(nb);const np=new THREE.Mesh(new THREE.BoxGeometry(.05,.065,.095),new THREE.MeshStandardMaterial({color:0xfafaf6,roughness:.95}));np.position.y=.06;nap.add(np);
-  const cs=put(new THREE.Group(),14.92,T,9.3);cs.add(new THREE.Mesh(lathe([[0,0],[.06,0],[.06,.006],[.012,.01],[.01,.08],[.13,.085],[.13,.09],[0,.09]],32),ceramicW));
+  putC(card,14.72,T+.07,5.3,-Math.PI/2).rotation.x=-.25;
+  const sug=putC(new THREE.Group(),14.76,T,6.92);sug.add(new THREE.Mesh(lathe([[0,0],[.028,0],[.034,.03],[.033,.055],[0,.055]],24),ceramicW));const sl=new THREE.Mesh(new THREE.SphereGeometry(.03,20,10,0,Math.PI*2,0,Math.PI/2),ceramicW);sl.scale.y=.5;sl.position.y=.055;sug.add(sl);
+  const nap=putC(new THREE.Group(),14.78,T,7.18);const nb=new THREE.Mesh(new THREE.BoxGeometry(.06,.07,.1),steelM);nb.position.y=.035;nap.add(nb);const np=new THREE.Mesh(new THREE.BoxGeometry(.05,.065,.095),new THREE.MeshStandardMaterial({color:0xfafaf6,roughness:.95}));np.position.y=.06;nap.add(np);
+  const cs=putC(new THREE.Group(),14.92,T,9.3);cs.add(new THREE.Mesh(lathe([[0,0],[.06,0],[.06,.006],[.012,.01],[.01,.08],[.13,.085],[.13,.09],[0,.09]],32),ceramicW));
   for(let k=0;k<3;k++){const w=new THREE.Mesh(new THREE.CylinderGeometry(.08,.08,.06,24,1,false,k*2.1,1.2),[new THREE.MeshStandardMaterial({color:0xe8c9a0,roughness:.8}),new THREE.MeshStandardMaterial({color:0xf3dcbc,roughness:.7}),new THREE.MeshStandardMaterial({color:0xf3dcbc,roughness:.7})]);w.position.y=.12;cs.add(w);}
   const dome=new THREE.Mesh(new THREE.SphereGeometry(.125,32,16,0,Math.PI*2,0,Math.PI/2),propGlass);dome.scale.y=1.15;dome.position.y=.09;cs.add(dome);
   const dk=new THREE.Mesh(new THREE.SphereGeometry(.012,12,8),steelM);dk.position.y=.235;cs.add(dk);
 }
-function barProps(){const Y=52,T=Y+.955,BZ=33.25;
+function barProps(){const Y=52,T=Y+.955,BZ=34.45;
   const mat=new THREE.Mesh(new THREE.BoxGeometry(.55,.008,.28),new THREE.MeshStandardMaterial({map:matTex,roughness:.9}));put(mat,-1.7,T+.004,BZ);
   put(shaker(),-1.88,T+.008,BZ);const jg=put(new THREE.Mesh(lathe([[0,0],[.022,0],[.014,.04],[.022,.08],[.021,.08],[.013,.04],[.02,.002],[0,.002]],24),steelM),-1.68,T+.008,BZ+.04);
   const mg=put(new THREE.Group(),-1.52,T+.008,BZ-.02);mg.add(new THREE.Mesh(lathe([[0,0],[.045,0],[.047,.14],[.044,.14],[.043,.016],[0,.014]],32),propGlass));
@@ -1139,9 +1147,9 @@ function barProps(){const Y=52,T=Y+.955,BZ=33.25;
   const mat2=new THREE.Mesh(new THREE.BoxGeometry(.5,.008,.25),new THREE.MeshStandardMaterial({map:matTex,roughness:.9}));put(mat2,2.4,T+.004,BZ);
   [[2.25,0],[2.4,0],[2.55,0]].forEach(([x],i)=>{const m=i%2?tumbler():martiniGlass();put(m,x,T+.008,BZ);});
   {const wg=put(new THREE.Group(),2.9,T,BZ+.02);wg.add(wineGlass());wg.add(new THREE.Mesh(lathe([[0,.1],[.012,.1015],[.024,.11],[.033,.126],[.038,.14],[0,.14]],32),new THREE.MeshStandardMaterial({color:0x5a0c18,transparent:true,opacity:.86,roughness:.06,envMapIntensity:1.2})));}
-  put(candle(),-.45,T,32.98);put(candle(),2.0,T,32.98);
+  put(candle(),-.45,T,34.18);put(candle(),2.0,T,34.18);
   [0,1,2].forEach(k=>{const T2=BOTTLE_TYPES[k*2%5];put(new THREE.Mesh(lathe(T2.p,24),new THREE.MeshStandardMaterial({color:T2.tint,transparent:true,opacity:T2.op+.15,roughness:.06,envMapIntensity:1.4,depthWrite:false})),-2.65+k*.12,T,BZ+.05);});
-  const cst=put(new THREE.Group(),.45,T,32.98);for(let k=0;k<6;k++){const c=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,.004,32),new THREE.MeshStandardMaterial({map:propCorkTex,roughness:.95}));c.position.set((Math.random()-.5)*.004,.002+k*.0045,0);cst.add(c);}
+  const cst=put(new THREE.Group(),.45,T,34.18);for(let k=0;k<6;k++){const c=new THREE.Mesh(new THREE.CylinderGeometry(.05,.05,.004,32),new THREE.MeshStandardMaterial({map:propCorkTex,roughness:.95}));c.position.set((Math.random()-.5)*.004,.002+k*.0045,0);cst.add(c);}
 }
 /* ---------- plants: leaf textures with alpha, shaped geometry ---------- */
 const PLANT={};
@@ -1206,6 +1214,44 @@ function pothos(x,y,z,yaw){const g=new THREE.Group();g.position.set(x,y,z);g.rot
   const inst=new THREE.InstancedMesh(new THREE.PlaneGeometry(.06,.06),PLANT.leafMat(PLANT.heart),leaves.length),m=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler(),sc=new V3();
   leaves.forEach((p,i)=>{e.set(-.6+Math.random()*.5,Math.random()*6.28,(Math.random()-.5)*.8);q.setFromEuler(e);m.compose(p,q,sc.setScalar(.8+Math.random()*.6));inst.setMatrixAt(i,m);});g.add(inst);return g;}
 
+/* ---------- books ---------- */
+const BOOK_MATS=(function(){
+  const pages=canvasTex(64,64,(g)=>{g.fillStyle='#eee4cc';g.fillRect(0,0,64,64);for(let y=0;y<64;y+=2){g.fillStyle=`rgba(120,100,70,${.08+Math.random()*.1})`;g.fillRect(0,y,64,1);}});
+  const pagesM=new THREE.MeshStandardMaterial({map:pages,roughness:.9});
+  const D=[['#5a1a1a','#d8b65a','雨の街','KAGURA'],['#1f2f4a','#e6dcc4','NIGHT RAIN',''],['#2a3a2a','#d8c890','珈琲の時間',''],['#e8e0cc','#3a2a1a','静かな夜','七層出版'],['#3a2a4a','#e8c8e8','NEON',''],['#7a5a3a','#f0e4c8','記憶の灯','AMANE'],['#141414','#c8a050','CITY LIGHTS',''],['#8a2a3a','#f2e8d8','傘と猫','']];
+  return D.map(([bg,fg,t1,t2],k)=>{const c=cvs(64,256),g=c.getContext('2d');g.fillStyle=bg;g.fillRect(0,0,64,256);
+    for(let i=0;i<900;i++){g.fillStyle=`rgba(${Math.random()<.5?'0,0,0':'255,255,255'},${Math.random()*.06})`;g.fillRect(Math.random()*64,Math.random()*256,1,2);}
+    g.fillStyle=fg;g.fillRect(0,14,64,3);g.fillRect(0,236,64,3);if(k%2)g.fillRect(0,22,64,1);
+    g.save();g.translate(32,128);g.rotate(Math.PI/2);g.textAlign='center';g.textBaseline='middle';g.font=`700 ${t1.length>6?15:18}px "Chakra Petch",${JPFONT}`;g.fillText(t1,-6,0);
+    if(t2){g.font=`9px ${JPFONT}`;g.fillText(t2,78,0);}g.restore();
+    g.fillStyle='rgba(0,0,0,.25)';g.fillRect(0,0,3,256);g.fillRect(61,0,3,256);
+    const spine=new THREE.MeshStandardMaterial({map:new THREE.CanvasTexture(c),roughness:.7});const cover=new THREE.MeshStandardMaterial({color:bg,roughness:.65});
+    return [spine,spine,pagesM,pagesM,cover,cover];}); // box faces: +x/-x spine, top/bottom pages, front/back covers
+})();
+// a low double-sided bookshelf; local z runs along its length, spines face local ±x
+function bookshelf(x,z,len,h,ry,doubleSided){const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=ry-Math.PI/2;scene.add(g);
+  const wood=woodMat(walnutBoards,1,1,{rough:.48});const D=.34;
+  const sh=(w,hh,d,px,py,pz)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,hh,d),wood);m.position.set(px,py,pz);g.add(m);return m;};
+  sh(D,.035,len,0,.0175,0);sh(D,.025,len-.04,0,h*.5,0);sh(D+.02,.035,len+.02,0,h-.0175,0);
+  for(const zz of [-len/2+.0125,len/2-.0125])sh(D,h,.025,0,h/2,zz);sh(.015,h-.04,len-.04,0,h/2,0);
+  const kick=sh(D-.04,.06,len-.05,0,.05,0);kick.material=beamM;
+  const groups=BOOK_MATS.map(()=>[]);const sides=doubleSided?[1,-1]:[1];
+  for(const sd of sides)for(const y0 of [.035+.0,h*.5+.0125]){let zc=-len/2+.035;const maxH=h*.5-.06;
+    while(zc<len/2-.06){const r=Math.random();
+      if(r<.07){ // horizontal stack
+        const n=2+Math.floor(Math.random()*3);let yy=y0;for(let k=0;k<n;k++){const th=.025+Math.random()*.015,w=.15+Math.random()*.04,d=.21+Math.random()*.04;groups[Math.floor(Math.random()*groups.length)].push({p:[sd*(D/2-d/2-.01),yy+th/2,zc+d/2],s:[w,th,d],r:[0,Math.PI/2+(Math.random()-.5)*.2,0]});yy+=th;}zc+=.25;continue;}
+      if(r<.1){zc+=.04+Math.random()*.06;continue;}
+      const th=.018+Math.random()*.03,bh=Math.min(maxH,.2+Math.random()*.13),dep=.14+Math.random()*.06;
+      const lean=(r<.14)?(Math.random()<.5?-1:1)*.22:0;
+      groups[Math.floor(Math.random()*groups.length)].push({p:[sd*(D/2-dep/2-.005),y0+bh/2*Math.cos(lean),zc+th/2+Math.abs(Math.sin(lean))*bh*.5],s:[dep,bh,th],r:[lean,sd<0?Math.PI:0,0]});
+      zc+=th+.0015+Math.abs(Math.sin(lean))*bh*.9;}
+    // bookend
+    const be=new THREE.Mesh(new THREE.BoxGeometry(.12,.15,.012),new THREE.MeshStandardMaterial({color:0x1a1a1c,metalness:.6,roughness:.4}));be.position.set(sd*.06,y0+.075,len/2-.05);g.add(be);}
+  const m=new THREE.Matrix4(),q=new THREE.Quaternion(),e=new THREE.Euler();
+  groups.forEach((list,k)=>{if(!list.length)return;const inst=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),BOOK_MATS[k],list.length);
+    list.forEach((b,i)=>{e.set(b.r[0],b.r[1],b.r[2]);q.setFromEuler(e);m.compose(new V3(...b.p),q,new V3(...b.s));inst.setMatrixAt(i,m);});g.add(inst);});
+  blob(x,0,z,1.8,.75,.45);return g;}
+
 /* ---------- café: columns, partition, booth (break up the big room) ---------- */
 function cafeInterior(){
   const plMat=(w,h)=>plasterMat(w/1.5,h/1.5);
@@ -1219,20 +1265,29 @@ function cafeInterior(){
     const lamp=new THREE.Mesh(new THREE.CylinderGeometry(.05,.07,.12,16,1,true),new THREE.MeshStandardMaterial({color:0xf3e3c8,emissive:0xffb070,emissiveIntensity:.6,side:THREE.DoubleSide}));lamp.position.set(.3,2.2,0);g.add(lamp);
     const gl=glowSprite(0xffc27a,.8,.45);gl.position.set(.3,2.2,0);g.add(gl);
     blob(x,0,z,1.0,1.0,.45);return g;}
-  column(11.6,6.0);column(13.3,2.0);
-  // low bookshelf partition from the column toward the tables
-  const sh=new THREE.Group();sh.position.set(11.6,0,4.95);scene.add(sh);
-  const frame=woodMat(walnutBoards,1,1,{rough:.5});
-  for(const y of [.03,.5,.98]){const b=new THREE.Mesh(new THREE.BoxGeometry(.32,.03,1.55),frame);b.position.y=y;sh.add(b);}
-  for(const z of [-.77,0,.77]){const b=new THREE.Mesh(new THREE.BoxGeometry(.32,1,.03),frame);b.position.set(0,.5,z);sh.add(b);}
-  const bk=new THREE.Mesh(new THREE.BoxGeometry(.02,.96,1.55),frame);bk.position.set(0,.49,0);sh.add(bk);
-  const bookG=new THREE.BoxGeometry(1,1,1),books=new THREE.InstancedMesh(bookG,new THREE.MeshStandardMaterial({color:0xffffff,roughness:.75}),70),m=new THREE.Matrix4(),q=new THREE.Quaternion(),sc=new V3(),col=new THREE.Color();
-  let bi=0;for(const yb of [.045,.515])for(const sd of [-1,1]){let z=-.74;while(z<.74&&bi<70){const w=.018+Math.random()*.025,h=.25+Math.random()*.15,d=.13+Math.random()*.08;
-    if(Math.random()<.08){z+=.05;continue;}q.setFromAxisAngle(new V3(1,0,0),Math.random()<.05?.25:0);m.compose(new V3(sd*.08,yb+h/2,z+w/2),q,sc.set(d,h,w));books.setMatrixAt(bi,m);
-    books.setColorAt(bi,col.setHSL(Math.random(),.25+Math.random()*.35,.18+Math.random()*.35));bi++;z+=w+.002;}}
-  books.count=bi;sh.add(books);blob(11.6,0,4.95,.7,1.8,.4);
-  pothos(11.6,.995,4.55,Math.PI/2);
-  const vase=new THREE.Mesh(lathe([[0,0],[.04,0],[.05,.06],[.03,.16],[.035,.2],[0,.2]],20),new THREE.MeshStandardMaterial({color:0x2a4a5a,roughness:.25}));vase.position.set(11.6,.995,5.45);scene.add(vase);
+  column(11.6,6.0);column(13.3,2.0);column(11.6,10.7);
+  // vertical wooden lattice (koshi) screens with an aisle in the middle
+  function lattice(x,z0,z1){const g=new THREE.Group();scene.add(g);const L=z1-z0,zc=(z0+z1)/2;
+    const base=new THREE.Mesh(new THREE.BoxGeometry(.14,.35,L),woodMat(walnutPanel,L*TM,.35*TM,{rough:.5}));base.position.set(x,.175,zc);g.add(base);
+    const cap=new THREE.Mesh(new THREE.BoxGeometry(.16,.04,L+.02),beamM);cap.position.set(x,.37,zc);g.add(cap);
+    const top=new THREE.Mesh(new THREE.BoxGeometry(.08,.06,L),beamM);top.position.set(x,2.15,zc);g.add(top);
+    const n=Math.floor(L/.075),inst=new THREE.InstancedMesh(new THREE.BoxGeometry(.035,1.75,.025),beamM,n),m=new THREE.Matrix4();
+    for(let i=0;i<n;i++){m.makeTranslation(x,1.265,z0+.04+i*(L-.08)/(n-1));inst.setMatrixAt(i,m);}g.add(inst);
+    for(const zz of [z0,z1]){const post=new THREE.Mesh(new THREE.BoxGeometry(.09,2.2,.09),beamM);post.position.set(x,1.1,zz);g.add(post);}
+    blob(x,0,zc,.5,L+.3,.4);}
+  lattice(10.25,1.6,5.2);lattice(10.25,6.8,10.3);
+  // low bookshelf partition from the column toward the tables (real-looking spines, page edges, bookends)
+  bookshelf(11.6,4.95,1.55,1.0,Math.PI/2,true);
+  pothos(11.6,1.0,4.42,Math.PI/2);
+  const vase=new THREE.Mesh(lathe([[0,0],[.04,0],[.05,.06],[.03,.16],[.035,.2],[0,.2]],20),new THREE.MeshStandardMaterial({color:0x2a4a5a,roughness:.25}));vase.position.set(11.6,1.0,5.48);scene.add(vase);
+  {const lp=new THREE.Group();lp.position.set(11.6,1.0,5.25);scene.add(lp);
+   lp.add(new THREE.Mesh(lathe([[0,0],[.05,0],[.05,.012],[.012,.02],[.01,.2],[0,.2]],20),brassM));
+   const shade=new THREE.Mesh(lathe([[.06,0],[.035,.1],[.033,.1],[.058,0]],24),new THREE.MeshStandardMaterial({color:0xf0dcc0,emissive:0xffb060,emissiveIntensity:.7,side:THREE.DoubleSide,roughness:.8}));shade.position.y=.17;lp.add(shade);
+   const gl=glowSprite(0xffc27a,.5,.5);gl.position.y=.2;lp.add(gl);
+   const ll=new THREE.PointLight(0xffb070,.6,1.8,2);ll.position.set(11.6,1.1,5.25);scene.add(ll);}
+  const fr=new THREE.Group();fr.position.set(11.62,1.0,5.05);fr.rotation.y=Math.PI/2+.25;scene.add(fr);
+  const fb=new THREE.Mesh(new THREE.BoxGeometry(.13,.17,.012),beamM);fb.position.y=.085;fb.rotation.x=-.12;fr.add(fb);
+  const ph=new THREE.Mesh(new THREE.PlaneGeometry(.1,.14),new THREE.MeshStandardMaterial({map:canvasTex(100,140,(g)=>{const gr=g.createLinearGradient(0,0,0,140);gr.addColorStop(0,'#3a4a6a');gr.addColorStop(1,'#c88a5a');g.fillStyle=gr;g.fillRect(0,0,100,140);g.fillStyle='rgba(20,15,20,.85)';for(let x=0;x<100;x+=12){const h=30+Math.random()*60;g.fillRect(x,140-h,10,h);}}),roughness:.5}));ph.position.set(0,.085,.0065);ph.rotation.x=-.12;fr.add(ph);
   // booth along the left wall
   const boothLeather=new THREE.MeshStandardMaterial({map:tex(leather.c,4,1),bumpMap:tex(leather.b,4,1),bumpScale:.003,roughness:.45});
   const base=new THREE.Mesh(new THREE.BoxGeometry(2.9,.36,.5),woodMat(walnutPanel,2.9*TM,.36*TM,{rough:.5}));base.position.set(11.4,.18,.36);scene.add(base);
@@ -1243,9 +1298,27 @@ function cafeInterior(){
     const c=candle();c.position.set(x,.755,1.02);scene.add(c);}
   pendant(10.7,2.75,1.0,0xffc27a);pendant(12.1,2.75,1.0,0xffc27a);
   // plants
-  monstera(17.3,0,.75,1.15);ficusTree(10.9,0,11.35,1.1);snakePlant(13.6,0,11.45,1.1);snakePlant(8.38,1.0,11.45,.5);
+  monstera(17.3,0,.75,1.15);ficusTree(9.75,0,11.45,1.05);snakePlant(13.6,0,11.45,1.1);snakePlant(8.38,1.0,11.45,.5);
 }
-function barPlants(){ficusTree(-6.3,52,36.2,1.25);ficusTree(6.4,52,36.0,1.15);monstera(-6.2,52,24.2,.95);}
+function barPlants(){ficusTree(-6.3,52,36.2,1.25);ficusTree(6.4,52,36.0,1.15);monstera(-6.2,52,24.2,.95);
+  const Y=52,colM=new THREE.MeshStandardMaterial({color:0x2a2630,roughness:.6,metalness:.3});
+  for(const [x,z] of [[-3.6,26.6],[3.6,26.6],[-3.6,30.4],[3.6,30.4]]){const c=new THREE.Mesh(new THREE.BoxGeometry(.4,3.6,.4),colM);c.position.set(x,Y+1.8,z);scene.add(c);
+    const led=new THREE.Mesh(new THREE.BoxGeometry(.02,3.2,.02),new THREE.MeshBasicMaterial({color:0xff7ab6}));led.position.set(x+(x<0?.21:-.21),Y+1.8,z);scene.add(led);
+    const gl=glowSprite(0xff7ab6,1.2,.25);gl.position.set(x+(x<0?.3:-.3),Y+1.4,z);scene.add(gl);blob(x,Y,z,.8,.8,.45);}
+  // slatted screens between the columns (separate the sofa zones)
+  for(const x of [-3.6,3.6]){const L=3.4,zc=28.5,n=Math.floor(L/.09),inst=new THREE.InstancedMesh(new THREE.BoxGeometry(.04,2.0,.04),beamM,n),m=new THREE.Matrix4();
+    for(let i=0;i<n;i++){m.makeTranslation(x,Y+1.05,26.8+i*(L)/(n-1));inst.setMatrixAt(i,m);}scene.add(inst);
+    for(const y of [.06,2.06]){const r=new THREE.Mesh(new THREE.BoxGeometry(.08,.06,L),beamM);r.position.set(x,Y+y,zc);scene.add(r);}}
+  // planter wall in the middle with grasses
+  const pw=new THREE.Mesh(new THREE.BoxGeometry(2.8,.7,.5),concreteMat(2.8/1.2,.7/.6));pw.position.set(0,Y+.35,28.3);scene.add(pw);
+  const soil=new THREE.Mesh(new THREE.BoxGeometry(2.7,.02,.42),new THREE.MeshStandardMaterial({color:0x221810,roughness:1}));soil.position.set(0,Y+.69,28.3);scene.add(soil);
+  for(let k=0;k<5;k++)snakePlant(-1.1+k*.55,Y+.42,28.3,.75);
+  blob(0,Y,28.3,3.2,1,.45);
+  // high-top tables with two stools each
+  for(const x of [-2.1,2.1]){const p2=new THREE.Mesh(lathe([[0,0],[.22,0],[.23,.01],[.06,.04],[.03,.08],[.03,1.0],[.06,1.04],[0,1.045]],32),ironM);p2.position.set(x,Y,25.9);scene.add(p2);
+    const tp=roundTop(.32,.03,marbleM);tp.position.set(x,Y+1.04,25.9);scene.add(tp);blob(x,Y,25.9,.8,.8,.5);
+    put(candle(),x,Y+1.07,25.9);for(const dz of [-.55,.55]){stool(x+dz*.2,Y,25.9+dz,1.05);}}
+}
 cafeProps();barProps();for(const f of deferredBuild)f();cafeInterior();barPlants();
 
 /* ---------- spaces & seats ---------- */
@@ -1253,12 +1326,12 @@ const SPACES={
   cafe:{name:'カフェ「雨音」',other:'bar',spawn:2,
     seats:[{name:'窓際の席',pos:new V3(9.15,0,6),yaw:Math.PI/2,drink:new V3(8.42,1.027,6),eye:1.42},
            {name:'テーブル席',pos:new V3(11.6,0,9.66),yaw:0,drink:new V3(11.68,.757,9.04),eye:1.16},
-           {name:'カウンター席',pos:new V3(14.25,0,6),yaw:-Math.PI/2,drink:new V3(14.82,.957,6.08),eye:1.42}],
+           {name:'カウンター席',pos:new V3(14.85,0,6),yaw:-Math.PI/2,drink:new V3(15.42,.957,6.08),eye:1.42}],
     rain:[-4,0,6,.55,false],rainCut:900,rainVol:.06,
     staff:'店主のユイ',greet:'店主のユイ「いらっしゃいませ。今夜も雨ですね。どうぞ、ゆっくりしていってください」'},
   bar:{name:'空中バー「宵闇」',other:'cafe',spawn:1,
     seats:[{name:'手すりの席',pos:new V3(0,52,24.5),yaw:0,drink:new V3(.0,53.057,23.45),eye:1.42},
-           {name:'カウンター席',pos:new V3(0,52,32.5),yaw:Math.PI,drink:new V3(-.08,52.957,33.0),eye:1.42},
+           {name:'カウンター席',pos:new V3(0,52,33.7),yaw:Math.PI,drink:new V3(-.08,52.957,34.2),eye:1.42},
            {name:'ソファ席',pos:new V3(-6.0,52,30.5),yaw:-Math.PI/2,drink:new V3(-5.15,52.507,30.5),eye:1.08}],
     rain:[0,36,30,1,true],rainCut:5000,rainVol:.045,
     staff:'バーテンダーのユイ',greet:'バーテンダーのユイ「来てくれたんですね。夜はここでバーテンダーをしているんです。雨の上の特等席へようこそ」'}
@@ -1467,7 +1540,8 @@ function applySeat(){
   const sp=SPACES[space],s=sp.seats[seatIdx];
   rig.position.copy(s.pos);rig.rotation.set(0,s.yaw,0);yaw=0;pitch=0;if(!renderer.xr.isPresenting)camera.position.y=s.eye||1.32;
   if(window.__mirror)window.__mirror.visible=space==='cafe';
-  if(space==='cafe'){hemi.color.setHex(0xffd9b8);hemi.groundColor.setHex(0x2a1a12);hemi.intensity=.3;}else{hemi.color.setHex(0x6a4cff);hemi.groundColor.setHex(0x1a0820);hemi.intensity=.35;}
+  scene.environment=ENV[space]||ENV.cafe;
+  if(space==='cafe'){hemi.color.setHex(0xffd9b8);hemi.groundColor.setHex(0x2a1a12);hemi.intensity=.07;}else{hemi.color.setHex(0x6a4cff);hemi.groundColor.setHex(0x1a0820);hemi.intensity=.2;}
   const [rx,ry,rz,sx,hole]=sp.rain;rain.position.set(rx,ry,rz);rain.scale.x=sx;
   if(hole!==rainHole){rainHole=hole;for(let i=0;i<RAIN;i++)holeFix(i);rainGeo.attributes.position.needsUpdate=true;}
   placePanel();placeDrink();placeBreath();rebuildRings();redrawUI();audio.setSpace(space);
@@ -1590,18 +1664,18 @@ function tick(){
 applySeat();rig.rotation.y=SPACES.cafe.seats[seatIdx].yaw+.3;
 /* ---------- VRoid staff (staff.glb, VRM 0.0) ---------- */
 const STAFF_PLAN={
-  cafe:{home:new V3(15.46,0,6),yaw:-Math.PI/2,axis:new V3(0,0,1),range:2.3,
-    visit:[new V3(15.6,0,10.6),new V3(13.5,0,10.6),new V3(13.5,0,7.3)],seat:new V3(14.4,0,6.7),sitYaw:Math.PI/2+.55,playerSeat:2,
-    back:[new V3(16.2,0,10.0),new V3(17.5,0,10.85),new V3(18.6,0,10.85),new V3(19.9,0,10.6)],backYaw:Math.PI/2,
+  cafe:{home:new V3(16.06,0,6),yaw:-Math.PI/2,axis:new V3(0,0,1),range:2.3,
+    visit:[new V3(16.2,0,10.6),new V3(14.1,0,10.6),new V3(14.1,0,7.3)],seat:new V3(15.0,0,6.7),sitYaw:Math.PI/2+.55,playerSeat:2,
+    back:[new V3(16.5,0,10.0),new V3(17.5,0,10.85),new V3(18.6,0,10.85),new V3(19.9,0,10.6)],backYaw:Math.PI/2,
     poi:[[8.3,1.9,3.6],[8.3,1.9,8.4],[11.6,.9,3.2],[12.6,1.6,11.7],[15.6,1.9,11.9],[9.2,2.6,6]],
-    work:[{kind:'machine',at:new V3(15.46,0,7.9)},{kind:'wipe',at:new V3(15.46,0,4.75)},{kind:'polish',at:new V3(15.46,0,5.2)},{kind:'wipe',at:new V3(15.46,0,8.9)}],
+    work:[{kind:'machine',at:new V3(16.06,0,7.9)},{kind:'wipe',at:new V3(16.06,0,4.75)},{kind:'polish',at:new V3(16.06,0,5.2)},{kind:'wipe',at:new V3(16.06,0,8.9)}],
     lines:['……となり、いいですか？','ふふ。こうして並ぶと、雨の音がよく聞こえますね','そろそろ戻りますね。ゆっくりしていってください'],
     chat:['今日は、どんな一日でしたか？','雨の音って、ずっと聞いていられますよね','このお店、夜が深くなると少しだけ静かになるんです','……あ、いえ。なんでもないです。ふふ','あの傘の人、さっきも通りましたね','疲れたら、いつでも来てくださいね','コーヒーの香りって、落ち着きますよね','こうしていると、時間がゆっくり流れる気がします','窓に流れる雨粒、どれが先に落ちるか競争してるみたい','……眠くなったら、言ってくださいね']},
-  bar:{home:new V3(0,52,33.66),yaw:Math.PI,axis:new V3(1,0,0),range:2.2,
-    visit:[new V3(-3.6,52,33.75),new V3(-3.6,52,31.95),new V3(-1.2,52,31.95)],seat:new V3(-.7,52,32.62),sitYaw:.7,playerSeat:1,
-    back:[new V3(3.8,52,34.2),new V3(5.1,52,36.2),new V3(5.1,52,37.5),new V3(5.0,52,38.6)],backYaw:0,
+  bar:{home:new V3(0,52,34.86),yaw:Math.PI,axis:new V3(1,0,0),range:2.2,
+    visit:[new V3(-3.6,52,34.95),new V3(-3.6,52,33.15),new V3(-1.2,52,33.15)],seat:new V3(-.7,52,33.82),sitYaw:.7,playerSeat:1,
+    back:[new V3(3.8,52,35.3),new V3(5.1,52,36.3),new V3(5.1,52,37.5),new V3(5.0,52,38.6)],backYaw:0,
     poi:[[-4,55,12],[4,56,4],[-6,52.6,30.5],[6,52.6,30.5],[0,62,14],[-2,50,10]],
-    work:[{kind:'shake',at:new V3(-1.7,52,33.66)},{kind:'wipe',at:new V3(-.95,52,33.66)},{kind:'polish',at:new V3(2.4,52,33.66)},{kind:'wipe',at:new V3(1.0,52,33.66)}],
+    work:[{kind:'shake',at:new V3(-1.7,52,34.86)},{kind:'wipe',at:new V3(-.95,52,34.86)},{kind:'polish',at:new V3(2.4,52,34.86)},{kind:'wipe',at:new V3(1.0,52,34.86)}],
     lines:['……少しだけ、休憩してもいいですか？','ふふ。ここから見る雨、私も好きなんです','さて、お仕事に戻ります。ごゆっくり'],
     chat:['ここから見ると、街が全部ネオンの海みたいでしょう？','空飛ぶ車の光、流れ星みたいに見えるときがあるんです','雨の上にいると、なんだか秘密の場所みたいですよね','あのホログラム、今日はゆっくり回ってますね','……今夜は、帰りたくないなって思うこと、ありません？','カクテル、もう一杯作りましょうか。……なんて','ふふ。こうして並ぶの、ちょっと緊張します','風、冷たくないですか？','疲れたら、いつでもここへ来てくださいね','下の通りの傘、上から見ると花畑みたいなんです']}
 };
@@ -1619,7 +1693,7 @@ function setupVRM(vrm,base,sp){
   vrm.scene.rotation.y=Math.PI;vrm.scene.scale.setScalar(SC);g.add(vrm.scene);scene.add(g);
   vrm.scene.traverse(o=>{if(o.isMesh)o.frustumCulled=false;});
   base.g.visible=false;
-  const fill=new THREE.PointLight(0xffd8bc,.5,2.4,2);fill.position.set(0,1.6,.75);g.add(fill);
+  const fill=new THREE.PointLight(0xffd8bc,.38,2.2,2);fill.position.set(0,1.6,.75);g.add(fill);
   const bone=n=>vrm.humanoid.getBoneNode(B[n]);
   const lUA=bone('LeftUpperArm'),rUA=bone('RightUpperArm'),lLA=bone('LeftLowerArm'),rLA=bone('RightLowerArm'),lH=bone('LeftHand'),rH=bone('RightHand'),
         head=bone('Head'),neck=bone('Neck'),chest=bone('Chest')||bone('Spine'),spine=bone('Spine'),hips=bone('Hips'),
