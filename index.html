@@ -818,7 +818,7 @@ const robots=[];
   faced(.2,1.6,1.0,18.1,2.9,10.85,1,brickMat(1/.9,1.6/.6));
   for(const z of [10.33,11.37])box(.24,2.12,.05,18.08,1.06,z,beamM);box(.24,.06,1.1,18.08,2.12,10.85,beamM);
   makeNoren(17.96,2.07,10.85,-Math.PI/2,['雨','音'],'#1e2c54','#f2efe6');
-  deferredBuild.push(function(){const K=kitchenRoom(18.2,21.2,9.0,12.0,0,2.95,{tubeAlongX:true});
+  deferredBuild.push(function(){const K=kitchenRoom(18.2,21.2,9.0,12.0,.02,2.93,{tubeAlongX:true});
     const counterK=slab(.62,2.6,.05,.01,steelM,.005);counterK.position.set(20.85,.88,10.4);scene.add(counterK);
     box(.6,.86,2.6,20.85,.43,10.4,new THREE.MeshStandardMaterial({color:0xb8bcc2,metalness:.6,roughness:.4}));
     const sink=new THREE.Mesh(new THREE.BoxGeometry(.4,.02,.5),new THREE.MeshStandardMaterial({color:0x6a6e74,metalness:.8,roughness:.25}));sink.position.set(20.85,.925,11.2);scene.add(sink);
@@ -999,7 +999,7 @@ const robots=[];
    makeNoren(5.1,Y+2.07,CZ+6.83,Math.PI,['宵','闇'],'#3a1020','#f4dfe6');
    const ext=new THREE.Mesh(new THREE.BoxGeometry(3.4,.4,2.6),new THREE.MeshStandardMaterial({color:0x221d2c,roughness:.35,metalness:.6}));ext.position.set(5.2,Y-.2,CZ+8.45);scene.add(ext);
    const shell=new THREE.Mesh(new THREE.BoxGeometry(3.0,3.0,2.35),darkM);shell.position.set(5.2,Y+1.5,CZ+8.33);scene.add(shell);
-   kitchenRoom(3.75,6.65,CZ+7.16,CZ+9.48,Y+.001,2.9,{light:0xffd6a8});
+   kitchenRoom(3.75,6.65,CZ+7.16,CZ+9.48,Y+.012,2.88,{light:0xffd6a8});
    const crateM=new THREE.MeshStandardMaterial({color:0x6a4a2c,roughness:.8});
    for(let i=0;i<3;i++){const cr=new THREE.Mesh(new THREE.BoxGeometry(.5,.3,.36),crateM);cr.position.set(4.1+i*.55,Y+.15+((i===1)?.3:0),CZ+9.2);scene.add(cr);}
    const ice=slab(.6,.6,.85,.02,steelM,.008);ice.position.set(6.25,Y,CZ+8.6);scene.add(ice);
@@ -1489,14 +1489,14 @@ applySeat();rig.rotation.y=SPACES.cafe.seats[seatIdx].yaw+.3;
 /* ---------- VRoid staff (staff.glb, VRM 0.0) ---------- */
 const STAFF_PLAN={
   cafe:{home:new V3(15.46,0,6),yaw:-Math.PI/2,axis:new V3(0,0,1),range:2.3,
-    visit:[new V3(15.6,0,10.6),new V3(13.5,0,10.6),new V3(13.5,0,7.3)],seat:new V3(14.32,0,6.7),sitYaw:Math.PI/2+.55,playerSeat:2,
+    visit:[new V3(15.6,0,10.6),new V3(13.5,0,10.6),new V3(13.5,0,7.3)],seat:new V3(14.4,0,6.7),sitYaw:Math.PI/2+.55,playerSeat:2,
     back:[new V3(16.2,0,10.0),new V3(17.5,0,10.85),new V3(18.6,0,10.85),new V3(19.9,0,10.6)],backYaw:Math.PI/2,
     poi:[[8.3,1.9,3.6],[8.3,1.9,8.4],[11.6,.9,3.2],[12.6,1.6,11.7],[15.6,1.9,11.9],[9.2,2.6,6]],
     work:[{kind:'machine',at:new V3(15.46,0,7.9)},{kind:'wipe',at:new V3(15.46,0,4.75)},{kind:'polish',at:new V3(15.46,0,5.2)},{kind:'wipe',at:new V3(15.46,0,8.9)}],
     lines:['……となり、いいですか？','ふふ。こうして並ぶと、雨の音がよく聞こえますね','そろそろ戻りますね。ゆっくりしていってください'],
     chat:['今日は、どんな一日でしたか？','雨の音って、ずっと聞いていられますよね','このお店、夜が深くなると少しだけ静かになるんです','……あ、いえ。なんでもないです。ふふ','あの傘の人、さっきも通りましたね','疲れたら、いつでも来てくださいね','コーヒーの香りって、落ち着きますよね','こうしていると、時間がゆっくり流れる気がします','窓に流れる雨粒、どれが先に落ちるか競争してるみたい','……眠くなったら、言ってくださいね']},
   bar:{home:new V3(0,52,33.66),yaw:Math.PI,axis:new V3(1,0,0),range:2.2,
-    visit:[new V3(-3.6,52,33.75),new V3(-3.6,52,31.95),new V3(-1.2,52,31.95)],seat:new V3(-.7,52,32.55),sitYaw:.7,playerSeat:1,
+    visit:[new V3(-3.6,52,33.75),new V3(-3.6,52,31.95),new V3(-1.2,52,31.95)],seat:new V3(-.7,52,32.62),sitYaw:.7,playerSeat:1,
     back:[new V3(3.8,52,34.2),new V3(5.1,52,36.2),new V3(5.1,52,37.5),new V3(5.0,52,38.6)],backYaw:0,
     poi:[[-4,55,12],[4,56,4],[-6,52.6,30.5],[6,52.6,30.5],[0,62,14],[-2,50,10]],
     work:[{kind:'shake',at:new V3(-1.7,52,33.66)},{kind:'wipe',at:new V3(-.95,52,33.66)},{kind:'polish',at:new V3(2.4,52,33.66)},{kind:'wipe',at:new V3(1.0,52,33.66)}],
@@ -1536,7 +1536,8 @@ function setupVRM(vrm,base,sp){
   const bsp=vrm.blendShapeProxy,setBS=(k,v)=>{if(bsp)bsp.setValue(E[k],v);};
   const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a)),lerpA=(a,b,k)=>a+wrap(b-a)*k;
   // ---- state
-  let queue=[],act=null,walking=0,walkPh=0,walkW=0,sitK=0,serveT=0,talkT=0,smileT=0,lookViewerT=0,lookAtPt=null,staying=false,workKind=null,workK=0,inBack=false;
+  let smileAge=9;const smile=()=>{smileAge=0;};
+  let queue=[],act=null,walking=0,walkPh=0,walkW=0,sitK=0,serveT=0,talkT=0,lookViewerT=0,lookAtPt=null,staying=false,workKind=null,workK=0,inBack=false;
   let blinkT=2,blink=0,nextWander=rand(18,30),nextVisit=rand(60,90),nextBack=rand(90,160);
   let standPose='counter',sitPose='table',poseT=rand(10,20);
   let gazeMode='viewer',gazeT=rand(4,7);const gazePt=new V3(),eyePt=new V3(0,1.5,0).add(P.home),headPt=eyePt.clone();
@@ -1561,7 +1562,7 @@ function setupVRM(vrm,base,sp){
     aim(LA,rest,tmp2.copy(vs).addScaledVector(vd,d).sub(ve));}
   const toLocal=(w,out)=>out.copy(w).applyMatrix4(inv);
   const o={g,vrm,space:sp,
-    serve(){if(atHome()&&!walking&&sitK===0){serveT=1.8;}smileT=Math.max(smileT,1.2);},
+    serve(){if(atHome()&&!walking&&sitK===0){serveT=1.8;}smile();},
     talk(sec){talkT=Math.max(talkT,sec);},
     setPose(p){if(p==='table'||p==='lap')sitPose=p;else standPose=p;poseT=rand(12,26);},
     resetHome(){queue=[];act=null;walking=0;sitK=0;workKind=null;workK=0;inBack=false;g.position.copy(P.home);bodyYaw=P.yaw;g.rotation.y=bodyYaw;nextWander=rand(18,30);nextVisit=rand(60,90);nextBack=rand(90,160);},
@@ -1604,12 +1605,12 @@ function setupVRM(vrm,base,sp){
         else if(a.t==='sit'){sitK=Math.min(1,sitK+dt/1.1);if(sitK>=1)done=true;}
         else if(a.t==='stand'){sitK=Math.max(0,sitK-dt/1.0);if(sitK<=0)done=true;}
         else if(a.t==='viewer'){lookViewerT=a.d;done=true;}
-        else if(a.t==='smile'){smileT=a.d;done=true;}
+        else if(a.t==='smile'){smile();done=true;}
         else if(a.t==='do'){a.f();done=true;}
         else if(a.t==='stay'){staying=true;
           if(a.e>=a.nc){a.nc=a.e+rand(30,50);let k;do{k=Math.floor(Math.random()*P.chat.length);}while(k===o._lastChat&&P.chat.length>1);o._lastChat=k;
-            caption(SPACES[sp].staff+'「'+P.chat[k]+'」',6);lookViewerT=Math.max(lookViewerT,6);if(Math.random()<.6)smileT=Math.max(smileT,1.6+Math.random());}
-          else if(Math.random()<dt/25)smileT=Math.max(smileT,1.2);
+            caption(SPACES[sp].staff+'「'+P.chat[k]+'」',6);lookViewerT=Math.max(lookViewerT,6);if(Math.random()<.6)smile();}
+          else if(Math.random()<dt/25)smile();
           if(a.e>=a.d||seatIdx!==P.playerSeat||space!==sp)done=true;}
         else if(a.t==='work'){workKind=a.kind;if(a.e>=a.d){done=true;workKind=null;}}
         if(done)act=null;
@@ -1661,7 +1662,7 @@ function setupVRM(vrm,base,sp){
       let poleKind=poseDef.pole;
       if(sitK>.5&&sitPose==='table'){ // real counter-top points in front of her seat
         const f=fwd,lw=new V3(f.z,0,-f.x),base=new V3(P.seat.x,P.home.y+.975,P.seat.z);
-        toLocal(base.clone().addScaledVector(f,.42).addScaledVector(lw,.13),dL);toLocal(base.clone().addScaledVector(f,.42).addScaledVector(lw,-.13),dR);}
+        toLocal(base.clone().addScaledVector(f,.33).addScaledVector(lw,.14),dL);toLocal(base.clone().addScaledVector(f,.31).addScaledVector(lw,-.12),dR);poleKind='seatTable';}
       if(walkW>.3&&sitK===0){const k=walkW;dL.lerp(new V3(.18,.81,.03-sw*.13),k);dR.lerp(new V3(-.18,.81,.03+sw*.13),k);poleKind='side';}
       if(workK>.01){const k=workK,wt=t*2.2;let wl,wr;
         if(workKind==='wipe'){wl=[.13+Math.cos(wt)*.08,.975,.3+Math.sin(wt)*.06];wr=[-.16,.985,.27];}
@@ -1675,6 +1676,7 @@ function setupVRM(vrm,base,sp){
       const lw=new V3(fwd.z,0,-fwd.x),up=new V3(0,1,0);
       const pv=(side)=>{const out=lw.clone().multiplyScalar(side);
         if(poleKind==='back')return out.multiplyScalar(1).addScaledVector(fwd,-.25).addScaledVector(up,-.2);
+        if(poleKind==='seatTable')return out.multiplyScalar(.9).addScaledVector(fwd,-.35).addScaledVector(up,-.6);
         if(poleKind==='front')return out.multiplyScalar(.8).addScaledVector(fwd,-.6).addScaledVector(up,-.35);
         return out.multiplyScalar(.45).addScaledVector(fwd,-1).addScaledVector(up,-.3);};
       curPL.lerp(pv(1),kk);curPR.lerp(pv(-1),kk);
@@ -1691,8 +1693,9 @@ function setupVRM(vrm,base,sp){
       // ---- face
       blinkT-=dt;if(blinkT<=0){blink=.15;blinkT=rand(2.4,5.5);}
       let bl=0;if(blink>0){blink-=dt;bl=Math.sin(clamp(1-blink/.15,0,1)*Math.PI);}
-      if(serveT>0)serveT-=dt;if(smileT>0)smileT-=dt;
-      const joy=Math.max(sk*.8,clamp(smileT,0,1)*.85);
+      if(serveT>0)serveT-=dt;smileAge+=dt;
+      // a real smile narrows the eyes only for a moment: ~0.08 s in, 0.22 s hold, 0.2 s out
+      const joy=smileAge<.08?smileAge/.08*.8:smileAge<.3?.8:smileAge<.5?.8*(1-(smileAge-.3)/.2):0;
       setBS('Joy',joy);setBS('Blink',joy>.3?0:bl);
       if(talkT>0){talkT-=dt;const m=Math.abs(Math.sin(t*11))*(.35+.3*Math.abs(Math.sin(t*3.7)));setBS('A',m*.8*(1-joy));setBS('O',m*.25*Math.abs(Math.sin(t*5))*(1-joy));}
       else{setBS('A',0);setBS('O',0);}
