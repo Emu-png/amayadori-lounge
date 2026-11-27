@@ -95,6 +95,7 @@ button.vr:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
     <button type="button" data-dbg="visit">隣に座る</button><button type="button" data-dbg="invite">バーに誘う</button>
     <button type="button" data-dbg="thunder">雷</button><button type="button" data-dbg="letter">手紙を置く</button>
     <button type="button" data-dbg="yawn">あくび</button><button type="button" data-dbg="chat">ひとこと</button>
+    <button type="button" data-dbg="kiss">キス</button><button type="button" data-dbg="lap">膝の上</button>
   </div>
   <h3>表情</h3>
   <div class="grp">
@@ -138,7 +139,7 @@ const rand=(a,b)=>a+Math.random()*(b-a);
 const pick=a=>a[Math.floor(Math.random()*a.length)];
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const V3=THREE.Vector3;
-const CAFE_K=.8,RZ=z=>12-(12-z)*CAFE_K;
+const CAFE_K=.8,RZ=z=>12-(12-z)*CAFE_K,CAFE_KX=.8,RX=x=>8+(x-8)*CAFE_KX,BAR_K=.8,RZB=z=>37-(37-z)*BAR_K,RXB=x=>x*BAR_K;
 const JPFONT='"Zen Kaku Gothic New","Hiragino Sans","Noto Sans JP","Yu Gothic","Meiryo",sans-serif';
 const NEON=[0x3ef2ff,0xff2e88,0xffb627,0x9d5cff,0x39ff9e,0xff5a36];
 const hex=c=>'#'+c.toString(16).padStart(6,'0');
@@ -412,7 +413,7 @@ const walkers=[];
 /* rain */
 const RAIN=4200,rainPos=new Float32Array(RAIN*6),rainCol=new Float32Array(RAIN*6),rainSpd=new Float32Array(RAIN),rainLen=new Float32Array(RAIN);let rainHole=false;
 function holeFix(i){if(!rainHole)return;const k=i*6;const x=rainPos[k],z=rainPos[k+2];
-  if(Math.abs(x)<8&&Math.abs(z)<8){const nx=x+(x<0?-8:8);rainPos[k]=nx;rainPos[k+3]=nx+rainLen[i]*.07;}}
+  if(Math.abs(x)<6&&Math.abs(z)<6){const nx=x+(x<0?-6:6);rainPos[k]=nx;rainPos[k+3]=nx+rainLen[i]*.07;}}
 for(let i=0;i<RAIN;i++){const x=rand(-22,22),y=rand(0,32),z=rand(-22,22),L=rand(.25,.75),b=rand(.25,.75);rainLen[i]=L;rainSpd[i]=rand(15,24);
   rainPos.set([x,y,z,x+L*.07,y+L,z],i*6);rainCol.set([b*.62,b*.68,b*.8,0,0,0],i*6);}
 const rainGeo=new THREE.BufferGeometry();rainGeo.setAttribute('position',new THREE.BufferAttribute(rainPos,3));rainGeo.setAttribute('color',new THREE.BufferAttribute(rainCol,3));
@@ -1668,10 +1669,11 @@ const SPACES={
            {name:'カウンター席',pos:new V3(0,52,33.7),yaw:Math.PI,drink:new V3(-.08,52.957,34.2),eye:1.42},
            {name:'ソファ席',pos:new V3(-6.0,52,30.5),yaw:-Math.PI/2,drink:new V3(-5.15,52.507,30.5),eye:1.08},
            {name:'入口',pos:new V3(-4.7,52,36.0),yaw:-1.25,drink:new V3(-4.7,53,36.0),eye:1.6,entry:true}],
-    rain:[0,36,30,1,true],rainCut:5000,rainVol:.045,
+    rain:[0,36,31.4,1,true],rainCut:5000,rainVol:.045,
     staff:'バーテンダーのユイ',greet:'バーテンダーのユイ「{wink}来てくれたんですね。夜はここでバーテンダーをしているんです。雨の上の特等席へようこそ」'}
 };
-for(const st of SPACES.cafe.seats){st.pos.z=RZ(st.pos.z);st.drink.z=RZ(st.drink.z);}
+for(const st of SPACES.bar.seats){st.pos.z=RZB(st.pos.z);st.drink.z=RZB(st.drink.z);st.pos.x=RXB(st.pos.x);st.drink.x=RXB(st.drink.x);}
+for(const st of SPACES.cafe.seats){st.pos.z=RZ(st.pos.z);st.drink.z=RZ(st.drink.z);st.pos.x=RX(st.pos.x);st.drink.x=RX(st.drink.x);}
 const entryIdx=sp=>SPACES[sp].seats.findIndex(x=>x.entry);
 function nextSeatIdx(){const S=SPACES[space].seats;let k=seatIdx;do{k=(k+1)%S.length;}while(S[k].entry);return k;}
 let space='cafe',seatIdx=2;
@@ -1962,6 +1964,10 @@ const QUESTIONS=[
   {id:'type',min:4,q:'{shy}{name}の好きなタイプって、どんな人ですか？',o:[['優しい人',2,'{smile}優しい人、かあ。……私、優しくできてるかな'],['笑顔がかわいい人',3,'{shy}……今、笑わないように必死です'],['君みたいな人',5,'{shy}……っ、もう。顔、見られないです']]},
   {id:'future',min:5,q:'{shy}……ねえ、{name}。これからも、ずっとここに来てくれる？',o:[['ずっと来るよ',4,'{shy}……うん。じゃあ私も、ずっとここで待ってる'],['できるだけ',1,'{pout}できるだけ、かあ。……ふふ、正直で好き'],['今度は外で会おう',5,'{shy}……！ うん。雨が止んでも、止まなくても、絶対']]}
 ];
+let veilT=0,kissDone=false,lapDone=false;
+function kissVeil(){veilT=3.4;spawnHearts(8);addMemory('kiss','はじめてのキス');}
+const LAP_Q={q:'{shy}……ねえ、{name}。……そっちに、行ってもいい？',o:[['おいで',3,''],['今はだめ',0,'{pout}……けち。……でも、あとで絶対ですからね']],
+  onAnswer(i){if(i===1){caption(SPACES[space].staff+'「'+this.o[1][2]+'」',6);return;}addLove(3);const st=robots[space==='cafe'?0:1];if(st&&st.lap)st.lap();}};
 const SULK_Q={q:'{pout}……どうして、しばらく来てくれなかったんですか？',o:[['ごめん、忙しくて',2,'{worry}……そっか。無理してないなら、いいんです。おかえりなさい'],['会いたかったよ',4,'{shy}……っ。ずるいです。そう言われたら、許すしかないじゃないですか'],['そうだっけ？',-3,'{pout}……もう知りません。……でも、来てくれたのはうれしいです']]};
 // floating choice buttons (work with mouse, touch and VR pointer)
 const choicePanel=new THREE.Group();choicePanel.visible=false;scene.add(choicePanel);
@@ -1970,7 +1976,7 @@ const choiceBtns=[0,1,2].map(i=>{const b=makeButton(.5,.06,btnDraw(()=>choiceLab
 function showChoice(Q){if(choiceQ)return false;choiceQ=Q;choiceT=0;Q.o.forEach((o,i)=>choiceLabels[i]=o[0]);
   const s2=SPACES[space].seats[seatIdx],f=fwdOf(s2.yaw),flat=!renderer.xr.isPresenting;
   choicePanel.position.copy(s2.pos).add(f.clone().multiplyScalar(flat?.9:.65)).add(rightOf(s2.yaw).multiplyScalar(flat?-.42:-.3));choicePanel.position.y=s2.pos.y+(flat?(s2.eye||1.42)-.15:1.12);
-  choicePanel.lookAt(s2.pos.x,s2.pos.y+(flat?(s2.eye||1.42):1.25),s2.pos.z);choicePanel.visible=true;choiceBtns.forEach(b=>b.redraw());
+  choicePanel.lookAt(s2.pos.x,s2.pos.y+(flat?(s2.eye||1.42):1.25),s2.pos.z);choicePanel.visible=true;choiceBtns.forEach((b,i)=>{b.mesh.visible=i<Q.o.length;b.redraw();});
   caption(SPACES[space].staff+'「'+Q.q+'」',25);return true;}
 function answerChoice(i){if(!choiceQ)return;const Q=choiceQ,o=Q.o[i];choiceQ=null;choicePanel.visible=false;
   if(Q.id){LOVE.answers[Q.id]=o[3]||i;}
@@ -2085,7 +2091,7 @@ function updateRomance3(dt){
   nextThunder-=dt;if(nextThunder<=0&&!choiceQ&&!reader.visible){nextThunder=rand(420,780);thunder();}
   if(!invitedThisVisit&&space==='cafe'&&seatIdx===SPACES.cafe.spawn&&loveStage()>=3&&sessionT>200&&!choiceQ&&!reader.visible&&Math.random()<dt/60){invitedThisVisit=true;showChoice(INVITE_Q);}
 }
-function caption(text,secs){text=text.replace(/\{name\}/g,callName());let expr=null;const mt=text.match(/\{(wink|shy|pout|worry|smile|surprise|yawn)\}/);if(mt){expr=mt[1];text=text.replace(mt[0],'');}captionText=text;
+function caption(text,secs){text=text.replace(/\{name\}/g,callName());let expr=null;const mt=text.match(/\{(wink|shy|pout|worry|smile|surprise|yawn|kiss)\}/);if(mt){expr=mt[1];text=text.replace(mt[0],'');}captionText=text;
   {const sp=SPACES[space];if(sp&&text.indexOf(sp.staff)===0){const st=robots[space==='cafe'?0:1];if(st&&st.talk)st.talk(Math.min(6,(text.length-sp.staff.length)*.09));if(st&&st.express&&expr)st.express(expr);}}
   header.redraw();const el=$('caption');el.textContent=text;el.classList.add('show');capT=secs||6;}
 function order(d){
@@ -2189,7 +2195,7 @@ $('vrbtn').addEventListener('click',async()=>{
 
 /* ---------- arrival ---------- */
 function enter(sp){
-  audio.init();active=true;sessionT=0;invitedThisVisit=false;nextThunder=rand(240,480);$('menu').hidden=true;
+  audio.init();active=true;kissDone=false;lapDone=false;sessionT=0;invitedThisVisit=false;nextThunder=rand(240,480);$('menu').hidden=true;
   const flat=!renderer.xr.isPresenting;$('home').hidden=!flat;$('tip').hidden=!flat;$('dbgToggle').hidden=!flat;
   for(const r of robots)if(r.resetHome)r.resetHome();space=sp;seatIdx=entryIdx(sp);if(drinkObj){scene.remove(drinkObj);drinkObj=null;}
   registerVisit();applySeat();beginArrival(sp);
@@ -2220,6 +2226,8 @@ $('home').addEventListener('click',()=>{active=false;$('menu').hidden=false;$('h
    else if(k==='letter'){toSpawn();let n=[2,3,4,5].find(x=>!LOVE.letters.includes(x));if(n==null)n=Math.max(2,st);if(!LOVE.letters.includes(n))LOVE.letters.push(n);if(!LOVE.unread.includes(n))LOVE.unread.push(n);saveLove();
      caption(SPACES[space].staff+'「{shy}……あ、あの。カウンターに置いたもの、あとで読んでくださいね」',5);}
    else if(k==='yawn'){const r=staffNow();if(r&&r.express)r.express('yawn');}
+   else if(k==='kiss'){toSpawn();setTimeout(()=>{const r=staffNow();if(!r||!r.kiss){caption('（モデルの読み込み中です）',3);return;}if(r.isSeated&&r.isSeated())r.kiss();else{r.resetHome();r.visit();r._kissSoon=true;}},600);}
+   else if(k==='lap'){toSpawn();setTimeout(()=>{const r=staffNow();if(!r||!r.lap){caption('（モデルの読み込み中です）',3);return;}choiceQ=null;choicePanel.visible=false;r.resetHome();r.lap();},600);}
    else if(k==='chat'){const pool=lovePool(LOVE_IDLE,st).concat(memoryLines());caption(SPACES[space].staff+'「'+pick(pool)+'」');}
    else if(k.startsWith('e:')){const r=staffNow();if(r&&r.express){r.express(k.slice(2));}}
    else if(k==='band'){bi=(bi+1)%BANDS.length;bandOverride=BANDS[bi];b.textContent=bandOverride?'時間帯：'+BAND_JP[bandOverride]:'実際の時刻';
@@ -2271,7 +2279,9 @@ function tick(){
     uiClock+=dt;if(uiClock>20){uiClock=0;header.redraw();}
   }else{rig.rotation.y+=dt*.03;}
   if(capT>0){capT-=dt;if(capT<=0)$('caption').classList.remove('show');}
-  if(fade){fade.t+=dt;
+  if(veilT>0){veilT-=dt;const e=3.4-veilT,v=e<.7?e/.7:veilT<.9?Math.max(0,veilT/.9):1;if(!fade){blackout.material.color.setHex(0x2a0a18);blackout.material.opacity=v*.88;}}
+  else if(!fade){blackout.material.color.setHex(0);if(blackout.material.opacity>0&&blackout.material.opacity<.9)blackout.material.opacity=0;}
+  if(fade){blackout.material.color.setHex(0);fade.t+=dt;
     if(fade.phase==='out'){blackout.material.opacity=Math.min(1,fade.t/.45);if(fade.t>=.45){fade.cb&&fade.cb();fade={t:0,phase:'in'};}}
     else{blackout.material.opacity=Math.max(0,1-fade.t/.7);if(fade.t>=.7)fade=null;}}
   renderer.render(scene,camera);
@@ -2316,18 +2326,40 @@ function shrinkCafe(){
   for(const o of scene.children.slice()){
     if(o===rig||o===splashMesh||o===rain)continue;
     if(o.isInstancedMesh){let ch=false;for(let i=0;i<o.count;i++){o.getMatrixAt(i,m);m.decompose(p,q,sc);if(!inC(p.x,p.y,p.z))continue;
-        if(o.userData.bottle){p.z+=1.65;if(p.z>9.95)sc.set(0,0,0);}else p.z=RZ(p.z);m.compose(p,q,sc);o.setMatrixAt(i,m);ch=true;}
+        if(o.userData.bottle){p.z+=1.65;if(p.z>9.95)sc.set(0,0,0);}else p.z=RZ(p.z);p.x=RX(p.x);m.compose(p,q,sc);o.setMatrixAt(i,m);ch=true;}
       if(ch)o.instanceMatrix.needsUpdate=true;continue;}
     o.updateMatrixWorld(true);box.setFromObject(o);if(box.isEmpty())box.setFromCenterAndSize(o.getWorldPosition(new V3()),new V3(.01,.01,.01));
     if(!(box.min.x>=7.85&&box.max.x<=21.6&&box.max.y<=3.85&&box.min.z>=-.35&&box.max.z<=12.35))continue;
-    const cz=(box.min.z+box.max.z)/2,Lz=box.max.z-box.min.z;
-    if(Lz>1.2){const ax=[new V3(1,0,0),new V3(0,1,0),new V3(0,0,1)].map(v=>v.applyQuaternion(o.quaternion));let b=0;for(let k=1;k<3;k++)if(Math.abs(ax[k].z)>Math.abs(ax[b].z))b=k;
-      if(Math.abs(ax[b].z)>.9){o.scale.setComponent(b,o.scale.getComponent(b)*CAFE_K);o.position.z=RZ(o.position.z);continue;}}
-    o.position.z+=RZ(cz)-cz;}
+    const ax=[new V3(1,0,0),new V3(0,1,0),new V3(0,0,1)].map(v=>v.applyQuaternion(o.quaternion));
+    const doAxis=(w,K,F)=>{const c=(box.min[w]+box.max[w])/2,L=box.max[w]-box.min[w];
+      if(L>1.2){let b=0;for(let k=1;k<3;k++)if(Math.abs(ax[k][w])>Math.abs(ax[b][w]))b=k;
+        if(Math.abs(ax[b][w])>.9){o.scale.setComponent(b,o.scale.getComponent(b)*K);o.position[w]=F(o.position[w]);return;}}
+      o.position[w]+=F(c)-c;};
+    doAxis('z',CAFE_K,RZ);doAxis('x',CAFE_KX,RX);}
   for(const n of norens)n.world.set(n.grp.position.x,n.grp.position.y-.6,n.grp.position.z);
   building(13,1.1,10.4,3.7,2.2,0,'apartment'); // fill the freed street frontage
 }
 shrinkCafe();
+function shrinkBar(){
+  const box=new THREE.Box3(),m=new THREE.Matrix4(),p=new V3(),q=new THREE.Quaternion(),sc=new V3();
+  const inB=(x,y,z)=>Math.abs(x)<=7.6&&y>=50.5&&y<=56.5&&z>=22.4&&z<=39.6;
+  for(const o of scene.children.slice()){
+    if(o===rig||o===splashMesh||o===rain)continue;
+    if(o.isInstancedMesh){let ch=false;for(let i=0;i<o.count;i++){o.getMatrixAt(i,m);m.decompose(p,q,sc);if(!inB(p.x,p.y,p.z))continue;
+        if(o.userData.bottle){if(Math.abs(p.x)>5.5){p.x+=(p.x<0?1:-1)*1.27;p.z+=.68;}else{p.z=RZB(p.z);if(Math.abs(p.x)>1.95)sc.set(0,0,0);}}
+        else{p.x=RXB(p.x);p.z=RZB(p.z);}m.compose(p,q,sc);o.setMatrixAt(i,m);ch=true;}
+      if(ch)o.instanceMatrix.needsUpdate=true;continue;}
+    o.updateMatrixWorld(true);box.setFromObject(o);if(box.isEmpty())box.setFromCenterAndSize(o.getWorldPosition(new V3()),new V3(.01,.01,.01));
+    if(!(box.min.x>=-7.6&&box.max.x<=7.6&&box.min.y>=50.5&&box.max.y<=56.5&&box.min.z>=22.4&&box.max.z<=39.6))continue;
+    const ax=[new V3(1,0,0),new V3(0,1,0),new V3(0,0,1)].map(v=>v.applyQuaternion(o.quaternion));
+    const doAxis=(w,K,F)=>{const c=(box.min[w]+box.max[w])/2,L=box.max[w]-box.min[w];
+      if(L>1.2){let b=0;for(let k=1;k<3;k++)if(Math.abs(ax[k][w])>Math.abs(ax[b][w]))b=k;
+        if(Math.abs(ax[b][w])>.9){o.scale.setComponent(b,o.scale.getComponent(b)*K);o.position[w]=F(o.position[w]);return;}}
+      o.position[w]+=F(c)-c;};
+    doAxis('z',BAR_K,RZB);doAxis('x',BAR_K,RXB);}
+  for(const n of norens)if(n.world.y>40)n.world.set(n.grp.position.x,n.grp.position.y-.6,n.grp.position.z);
+}
+shrinkBar();
 addOutlines(scene);
 applySeat();rig.rotation.y=SPACES.cafe.seats[seatIdx].yaw+.3;
 /* ---------- VRoid staff (staff.glb, VRM 0.0) ---------- */
@@ -2349,7 +2381,8 @@ const STAFF_PLAN={
     lines:['{shy}……少しだけ、休憩してもいいですか？','{smile}ふふ。ここから見る雨、私も好きなんです','{wink}さて、お仕事に戻ります。今のは内緒の休憩ですよ'],
     chat:['{worry}風、冷たくないですか？ 寒かったら言ってくださいね','{worry}……今日は、少し疲れた顔してますね','{worry}雨、強くなってきましたね。帰り道、気をつけて','{wink}このカクテルのレシピ、あなたにだけ教えてあげます','{wink}特等席、ほかの人には譲らないでおきますね','{wink}今夜のことは、二人だけの秘密です','{shy}ふふ。こうして並ぶの、ちょっと緊張します','{shy}……今夜は、帰りたくないなって思うこと、ありません？','{shy}あの……私の顔、何かついてます？','{pout}さっき、ほかのお店の話してませんでした？','{pout}私が作ったカクテル、まだ感想聞いてないです','{pout}……もう、すぐ窓の外ばっかり見るんだから','{smile}ここから見ると、街が全部ネオンの海みたいでしょう？','{smile}下の通りの傘、上から見ると花畑みたいなんです','空飛ぶ車の光、流れ星みたいに見えるときがあるんです','あのホログラム、今日はゆっくり回ってますね']}
 };
-{const C=STAFF_PLAN.cafe,r=v=>{v.z=RZ(v.z);};r(C.home);C.visit.forEach(r);r(C.seat);C.back.forEach(r);C.door.forEach(r);C.work.forEach(w=>r(w.at));C.poi.forEach(q=>q[2]=RZ(q[2]));}
+{const B=STAFF_PLAN.bar,r=v=>{v.z=RZB(v.z);v.x=RXB(v.x);};r(B.home);B.visit.forEach(r);r(B.seat);B.back.forEach(r);B.door.forEach(r);B.work.forEach(w=>r(w.at));}
+{const C=STAFF_PLAN.cafe,r=v=>{v.z=RZ(v.z);v.x=RX(v.x);};r(C.home);C.visit.forEach(r);r(C.seat);C.back.forEach(r);C.door.forEach(r);C.work.forEach(w=>r(w.at));C.poi.forEach(q=>{q[2]=RZ(q[2]);q[0]=RX(q[0]);});}
 // hand targets in her own frame (metres; +z = her front, +x = her left, y from the floor while standing)
 const ARM_POSES={
   down:   {L:[.19,.79,.02], R:[-.19,.79,.02], pole:'side', lean:-.02},
@@ -2392,6 +2425,7 @@ function setupVRM(vrm,base,sp){
   const bsp=vrm.blendShapeProxy,setBS=(k,v)=>{if(bsp)bsp.setValue(E[k],v);};
   const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a)),lerpA=(a,b,k)=>a+wrap(b-a)*k;
   // ---- state
+  let kissK=0,lapK=0;
   let smileAge=9;const smile=()=>{if(exprKind==='pout'&&exprAge<exprDur)return;smileAge=0;};
   let exprKind=null,exprAge=9,exprDur=0;
   let queue=[],act=null,walking=0,walkPh=0,walkW=0,sitK=0,serveT=0,talkT=0,lookViewerT=0,lookAtPt=null,staying=false,workKind=null,workK=0,inBack=false;
@@ -2422,14 +2456,14 @@ function setupVRM(vrm,base,sp){
   const o={g,vrm,space:sp,
     serve(){if(atHome()&&!walking&&sitK===0){serveT=1.8;}smile();},
     talk(sec){talkT=Math.max(talkT,sec);},
-    express(k){if(k==='smile'){smile();return;}exprKind=k;exprAge=0;exprDur=k==='wink'?1.6:k==='worry'?3.4:k==='yawn'?2.6:k==='surprise'?1.8:k==='pout'?20:2.8;if(k==='surprise')lookViewerT=0;if(k==='worry'||k==='wink')lookViewerT=Math.max(lookViewerT,k==='worry'?3:1.6);},
+    express(k){if(k==='smile'){smile();return;}exprKind=k;exprAge=0;exprDur=k==='wink'?1.6:k==='worry'?3.4:k==='yawn'?2.6:k==='surprise'?1.8:k==='pout'?20:k==='kiss'?3.6:2.8;if(k==='surprise')lookViewerT=0;if(k==='worry'||k==='wink')lookViewerT=Math.max(lookViewerT,k==='worry'?3:1.6);},
     setPose(p){if(p==='table'||p==='lap'||p==='lean')sitPose=p;else standPose=p;poseT=rand(12,26);},
-    resetHome(){queue=[];act=null;walking=0;sitK=0;workKind=null;workK=0;inBack=false;pourLiq=null;stream.visible=false;g.position.copy(P.home);bodyYaw=P.yaw;g.rotation.y=bodyYaw;nextWander=rand(18,30);nextVisit=rand(60,90);nextBack=rand(90,160);},
+    resetHome(){queue=[];act=null;walking=0;sitK=0;lapK=0;kissK=0;o._kiss=null;workKind=null;workK=0;inBack=false;pourLiq=null;stream.visible=false;g.position.copy(P.home);bodyYaw=P.yaw;g.rotation.y=bodyYaw;nextWander=rand(18,30);nextVisit=rand(60,90);nextBack=rand(90,160);},
     wander(){const off=(Math.random()<.5?-1:1)*rand(1.1,P.range),pt=P.home.clone().addScaledVector(P.axis,off),by=P.yaw+Math.PI;
       plan([{t:'walk',to:pt},{t:'turn',yaw:by},{t:'pose',p:pick(['down','front'])},{t:'wait',d:rand(1.5,3),look:pt.clone().add(new V3(Math.sin(by),0,Math.cos(by)).multiplyScalar(1.2)).setY(P.home.y+1.6+Math.random()*.6)},
         {t:'turn',yaw:P.yaw},{t:'wait',d:rand(1,2.5)},{t:'walk',to:P.home.clone()},{t:'turn',yaw:P.yaw}]);},
     prepare(id,done){if(sitK>0)return false;
-      const H=P.home,Y0=H.y,F=P.yaw,B2=P.yaw+Math.PI,at=(x,z)=>new V3(x,Y0,sp==='cafe'?RZ(z):z),walk=v=>({t:'walk',to:v}),turn=y=>({t:'turn',yaw:y}),wk=(k,d,liq)=>({t:'work',kind:k,d,liq});
+      const H=P.home,Y0=H.y,F=P.yaw,B2=P.yaw+Math.PI,at=(x,z)=>new V3(sp==='cafe'?RX(x):RXB(x),Y0,sp==='cafe'?RZ(z):RZB(z)),walk=v=>({t:'walk',to:v}),turn=y=>({t:'turn',yaw:y}),wk=(k,d,liq)=>({t:'work',kind:k,d,liq});
       const snd={t:'do',f:()=>audio.pour()},finish=[walk(H.clone()),turn(F),{t:'do',f:()=>{serveT=1.8;smile();}},{t:'wait',d:.75},{t:'do',f:done},{t:'wait',d:.8}];
       let steps;
       if(sp==='cafe'){
@@ -2442,6 +2476,13 @@ function setupVRM(vrm,base,sp){
         else steps=[walk(at(1.0,34.86)),turn(F),snd,wk('kettle',3.6,id==='tea'?0xd08a2a:0x3a1a08)];
       }
       plan([...steps,...finish]);nextWander=Math.max(nextWander,rand(15,25));return true;},
+    isSeated(){return sitK>.5;},
+    kiss(){if(o._kiss!=null)return;o._kiss=0;o._kf={};caption(SPACES[sp].staff+'「{shy}……{name}。ちょっとだけ、目を閉じて」',4);},
+    lap(){if(sitK>0)return;const S=SPACES[sp].seats[P.playerSeat],f=fwdOf(S.yaw),r=rightOf(S.yaw);
+      const side=S.pos.clone().addScaledVector(r,.42).addScaledVector(f,-.38);side.y=P.home.y;
+      const lapPos=S.pos.clone().addScaledVector(f,.44);lapPos.y=P.home.y;const back=P.visit.slice().reverse();
+      plan([...P.visit.map(v=>({t:'walk',to:v.clone()})),{t:'walk',to:side},{t:'mount',from:side.clone(),to:lapPos,yaw:S.yaw},{t:'lapStay',d:24},
+        {t:'dismount',from:lapPos.clone(),to:side.clone(),yaw:S.yaw},...back.map(v=>({t:'walk',to:v.clone()})),{t:'walk',to:P.home.clone()},{t:'turn',yaw:P.yaw}]);},
     greetDoor(){if(sitK>0)return;plan([...P.door.map(v=>({t:'walk',to:v.clone()})),{t:'faceViewer'},{t:'viewer',d:8},{t:'wait',d:90}]);},
     returnHome(){const back=P.door.slice(0,-1).reverse();plan([...back.map(v=>({t:'walk',to:v.clone()})),{t:'walk',to:P.home.clone()},{t:'turn',yaw:P.yaw}]);nextWander=rand(8,14);},
     work(w){w=w||pick(P.work);plan([{t:'walk',to:w.at.clone()},{t:'turn',yaw:P.yaw},{t:'work',kind:w.kind,d:rand(7,13)},{t:'wait',d:rand(.8,1.6)},{t:'walk',to:P.home.clone()},{t:'turn',yaw:P.yaw}]);},
@@ -2458,6 +2499,7 @@ function setupVRM(vrm,base,sp){
       if(!act&&!queue.length){
         if(atHome()){nextWander-=dt;nextVisit-=dt;nextBack-=dt;
           const playerHere=space===sp&&seatIdx===P.playerSeat&&!breathOn;
+          if(loveStage()>=5&&playerHere&&!lapDone&&sessionT>150&&!choiceQ&&Math.random()<dt/90){lapDone=true;showChoice(LAP_Q);}
           if(nextVisit<=0&&playerHere){o.visit();const st=loveStage();nextVisit=[0,rand(300,420),rand(200,300),rand(150,240),rand(110,180),rand(80,140)][st];nextWander=rand(25,40);}
           else if(nextVisit<=0)nextVisit=rand(15,25);
           else if(nextBack<=0){o.backroom();nextBack=rand(120,220);nextWander=rand(25,40);}
@@ -2477,6 +2519,14 @@ function setupVRM(vrm,base,sp){
         else if(a.t==='wait'){if(a.look)lookAtPt=a.look;if(a.e>=a.d)done=true;}
         else if(a.t==='pose'){standPose=a.p;poseT=rand(8,16);done=true;}
         else if(a.t==='flag'){inBack=a.v;done=true;}
+        else if(a.t==='mount'||a.t==='dismount'){const k=clamp(a.e/1.7,0,1),e=k*k*(3-2*k),w=a.t==='mount'?e:1-e;
+          g.position.x=a.from.x+(a.to.x-a.from.x)*e;g.position.z=a.from.z+(a.to.z-a.from.z)*e;bodyYaw=lerpA(bodyYaw,a.yaw,Math.min(1,dt*5));sitK=w;lapK=w;lookViewerT=Math.max(lookViewerT,1);if(k>=1)done=true;}
+        else if(a.t==='lapStay'){staying=true;lookViewerT=Math.max(lookViewerT,.5);a.f=a.f||{};
+          if(a.e>1.2&&!a.f.a){a.f.a=1;caption(SPACES[sp].staff+'「{shy}……えへへ。こうしてると、あったかいね」',5);}
+          if(a.e>4&&!a.f.b){a.f.b=1;caption(SPACES[sp].staff+'「{shy}……ぎゅってしても、いい？」',4);}
+          if(a.e>9&&!a.f.c){a.f.c=1;o.kiss();}
+          if(a.e>18&&!a.f.d){a.f.d=1;caption(SPACES[sp].staff+'「{shy}……そろそろ戻らなきゃ。……もう少しだけ、こうしてたかったな」',6);}
+          if(a.e>=a.d||seatIdx!==P.playerSeat||space!==sp)done=true;}
         else if(a.t==='faceViewer'){const want=Math.atan2(viewer.x-g.position.x,viewer.z-g.position.z),prev=bodyYaw;bodyYaw=lerpA(bodyYaw,want,Math.min(1,dt*3));turnAmt=Math.abs(wrap(bodyYaw-prev));walking=.5;if(Math.abs(wrap(want-bodyYaw))<.03)done=true;}
         else if(a.t==='sit'){sitK=Math.min(1,sitK+dt/1.1);if(sitK>=1)done=true;}
         else if(a.t==='stand'){sitK=Math.max(0,sitK-dt/1.0);if(sitK<=0)done=true;}
@@ -2484,7 +2534,9 @@ function setupVRM(vrm,base,sp){
         else if(a.t==='smile'){smile();done=true;}
         else if(a.t==='do'){a.f();done=true;}
         else if(a.t==='stay'){staying=true;
-          if(a.e>=a.nc&&!choiceQ&&loveStage()>=2&&Math.random()<.35&&askQuestion()){a.nc=a.e+rand(35,50);lookViewerT=Math.max(lookViewerT,4);}
+          if((o._kissSoon||(loveStage()>=4&&!kissDone&&a.e>40&&Math.random()<dt/30))&&o._kiss==null&&!choiceQ){o._kissSoon=false;kissDone=true;o.kiss();a.nc=a.e+rand(25,40);}
+          if(o._kiss!=null){}
+          else if(a.e>=a.nc&&!choiceQ&&loveStage()>=2&&Math.random()<.35&&askQuestion()){a.nc=a.e+rand(35,50);lookViewerT=Math.max(lookViewerT,4);}
           else if(a.e>=a.nc&&!choiceQ){a.nc=a.e+rand(30,50);const pool=lovePool(LOVE_CHAT,loveStage()).concat(loveStage()>=3?P.chat.slice(0,6):[],memoryLines(),timeBand()==='late'?LATE_IDLE:[]);let k;do{k=Math.floor(Math.random()*pool.length);}while(pool[k]===o._lastChat&&pool.length>1);o._lastChat=pool[k];
             caption(SPACES[sp].staff+'「'+pool[k]+'」',6);addLove(1);lookViewerT=Math.max(lookViewerT,3);if(Math.random()<.6)smile();}
           else if(Math.random()<dt/25)smile();
@@ -2501,6 +2553,10 @@ function setupVRM(vrm,base,sp){
         else standPose=pick(['down','front']);}
       if(!atHome()&&standPose==='counter'&&!workKind&&sitK===0&&walking<1)standPose='down';
       // ---- gaze (eyes lead, head follows)
+      if(o._kiss!=null){o._kiss+=dt;const e=o._kiss,F=o._kf;kissK=e<1.6?e/1.6:e<4.4?1:Math.max(0,1-(e-4.4)/1.2);lookViewerT=Math.max(lookViewerT,.5);
+        if(e>1.3&&!F.a){F.a=1;o.express('kiss');}if(e>1.8&&!F.b){F.b=1;kissVeil();}
+        if(e>5.4&&!F.c){F.c=1;caption(SPACES[sp].staff+'「'+(loveStage()>=5?'{shy}……好き。……今の、二人だけの秘密ね':'{shy}……し、しちゃった。……今の、内緒ですよ')+'」',6);}
+        if(e>6.6)o._kiss=null;}else kissK=Math.max(0,kissK-dt);
       if(lookViewerT>0)lookViewerT-=dt;
       gazeT-=dt;if(gazeT<=0)newGaze(gazeMode==='viewer'?'poi':'viewer');
       let target;fwd.set(Math.sin(bodyYaw),0,Math.cos(bodyYaw));
@@ -2522,16 +2578,16 @@ function setupVRM(vrm,base,sp){
       if(walkW<.02)walkPh+=(Math.round(walkPh/Math.PI)*Math.PI-walkPh)*Math.min(1,dt*4); // settle feet together
       const sw=Math.sin(walkPh),cw=Math.cos(walkPh),A=.2*walkW;
       {const si=Math.floor(walkPh/Math.PI);if(si!==o._step){if(o._step!=null&&walkW>.5&&space===sp)audio.step();o._step=si;}}
-      if(lUL)lUL.rotation.set(sw*A+sitK*1.45,0,0);if(rUL)rUL.rotation.set(-sw*A+sitK*1.45,0,0);
+      if(lUL)lUL.rotation.set(sw*A+sitK*1.45-lapK*.35,0,-lapK*.3);if(rUL)rUL.rotation.set(-sw*A+sitK*1.45-lapK*.35,0,lapK*.3);
       if(lLL)lLL.rotation.set(-(.6*Math.max(0,cw)*walkW)-sitK*1.35,0,0);if(rLL)rLL.rotation.set(-(.6*Math.max(0,-cw)*walkW)-sitK*1.35,0,0);
       if(lF)lF.rotation.set(-.15*Math.max(0,-cw)*walkW-sitK*.1,0,0);if(rF)rF.rotation.set(-.15*Math.max(0,cw)*walkW-sitK*.1,0,0);
       if(hips)hips.rotation.set(0,sw*.06*walkW,sw*.03*walkW);
-      g.position.y=P.home.y-sitK*.12+(.006-.013*Math.abs(sw))*walkW;
+      g.position.y=P.home.y-sitK*.12+lapK*.05+(.006-.013*Math.abs(sw))*walkW;
       // ---- torso & head
       workK+=((workKind?1:0)-workK)*Math.min(1,dt*3);
       leanK+=((sitK>.5&&sitPose==='lean'?1:0)-leanK)*Math.min(1,dt*1.8);
       const poseDef=sitK>.5?ARM_POSES[sitPose==='lap'?'lap':'counter']:ARM_POSES[standPose];
-      const wantLean=(walkW>.5?-.03:poseDef.lean)-(workKind==='wipe'?.12:workKind==='machine'?.05:0)*workK-(sitK>.5&&sitPose==='table'?.08:0)-leanK*.3;
+      const wantLean=(walkW>.5?-.03:poseDef.lean)-(workKind==='wipe'?.12:workKind==='machine'?.05:0)*workK-(sitK>.5&&sitPose==='table'?.08:0)-leanK*.3-lapK*.1-kissK*.16;
       curLean+=(wantLean-curLean)*Math.min(1,dt*3);
       g.updateMatrixWorld(true);inv.copy(g.matrixWorld).invert();toLocal(headPt,tmp);
       const hy=1.52-.12*sitK-.14*leanK;let yaw=clamp(Math.atan2(tmp.x,tmp.z),-1.3,1.3),pit=clamp(Math.atan2(tmp.y-hy,Math.hypot(tmp.x,tmp.z)),-.5,.45);
@@ -2565,6 +2621,7 @@ function setupVRM(vrm,base,sp){
         else{const on=(t%4)<2.6,v=on?Math.sin(t*16)*.035:0;wr=[-.15,1.3+v,.17];wl=[.16,.985,.27];}
         if(wl){dL.lerp(new V3(...wl),k);dR.lerp(new V3(...wr),k);poleKind='side';}}
       if(sk>0)dR.lerp(new V3(-.1,1.05,.42),sk);
+      if(lapK>.01){const vl=toLocal(viewer,new V3());dL.lerp(new V3(vl.x+.15,vl.y-.11,vl.z+.07),lapK);dR.lerp(new V3(vl.x-.15,vl.y-.11,vl.z+.07),lapK);poleKind='side';}
       const kk=1-Math.exp(-dt*(walkW>.3||workK>.3?10:3.5));curL.lerp(dL,kk);curR.lerp(dR,kk);
       // pole vectors (world): elbows mostly back & out
       const lw=new V3(fwd.z,0,-fwd.x),up=new V3(0,1,0);
@@ -2605,9 +2662,10 @@ function setupVRM(vrm,base,sp){
       else if(exprKind==='pout'){eAng=.55*eEnv;eU=(exprAge<4?.5:.22)*eEnv;}
       else if(exprKind==='worry'){eSor=.42*eEnv;}
       else if(exprKind==='yawn'){eYawn=eEnv;}
+      const eKiss=exprKind==='kiss'?eEnv:0;
       let eSur=exprKind==='surprise'?eEnv:0;
       const joyAll=Math.max(joy,eJoy);
-      setBS('Joy',joyAll);setBS('Angry',eAng);setBS('Sorrow',eSor);setBS('BlinkR',eWinkR);setBS('Blink',(joy>.3||eWinkR>.05)?0:Math.max(bl,eYawn*.6));
+      setBS('Joy',joyAll);setBS('Angry',eAng);setBS('Sorrow',eSor);setBS('BlinkR',eWinkR);setBS('Blink',(joy>.3||eWinkR>.05)?0:Math.max(bl,eYawn*.6,eKiss*.95));
       const quiet=1-Math.max(joyAll,eU*.8);
       if(talkT>0){talkT-=dt;const m=Math.abs(Math.sin(t*11))*(.35+.3*Math.abs(Math.sin(t*3.7)));setBS('A',m*.8*quiet);setBS('O',m*.25*Math.abs(Math.sin(t*5))*quiet);setBS('U',eU*(.7+.3*Math.abs(Math.sin(t*9))));}
       else{setBS('A',0);setBS('O',0);setBS('U',eU);}
