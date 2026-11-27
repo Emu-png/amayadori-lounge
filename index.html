@@ -50,13 +50,28 @@ button.vr:disabled{background:#2a2840;color:#6b6a85;cursor:not-allowed}
 button.vr:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
 .status{font-family:var(--mono);font-size:12px;color:var(--dim);line-height:1.6}
 .hint{font-size:12.5px;color:var(--dim);line-height:1.7}
+.namebox{display:grid;gap:6px}.namebox label{font-size:12.5px;color:var(--rose);letter-spacing:.08em}
+#yourname{font:inherit;font-size:15px;color:var(--text);background:rgba(255,255,255,.06);border:1px solid var(--line);padding:9px 12px;width:min(220px,100%);box-sizing:border-box}
+#yourname:focus-visible{outline:2px solid var(--amber)}
+#lovereset{all:unset;cursor:pointer;font-size:12px;color:var(--dim);text-decoration:underline}
+#lovereset:focus-visible{outline:2px solid var(--amber)}
 #home{position:fixed;z-index:12;top:calc(14px + env(safe-area-inset-top,0px));left:max(16px,env(safe-area-inset-left,0px));
   font-family:var(--body);font-size:13px;color:var(--text);background:rgba(12,8,22,.6);border:1px solid var(--line);padding:8px 14px;cursor:pointer}
 #home:focus-visible{outline:2px solid var(--amber)}
+#dbgToggle{position:fixed;z-index:13;top:calc(14px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));font:inherit;font-size:12px;color:var(--ink);background:var(--amber);border:0;padding:8px 12px;cursor:pointer}
+#dbgToggle:focus-visible,#debug button:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+#debug{position:fixed;z-index:13;top:calc(52px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));width:min(250px,calc(100vw - 32px));max-height:calc(100vh - 140px);overflow-y:auto;
+  background:rgba(12,8,22,.92);border:1px solid var(--line);padding:12px;display:grid;gap:10px;box-sizing:border-box}
+#debug h3{margin:0;font-size:12px;letter-spacing:.12em;color:var(--amber);font-family:var(--mono)}
+#debug .grp{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+#debug button{font:inherit;font-size:12px;color:var(--text);background:rgba(255,194,122,.1);border:1px solid var(--line);padding:7px 6px;cursor:pointer;text-align:center}
+#debug button:hover{background:rgba(255,194,122,.25)}
+#debug button.wide{grid-column:1/-1}
+#dbgStat{font-family:var(--mono);font-size:12px;color:var(--rose);line-height:1.6}
 #caption{position:fixed;z-index:12;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);max-width:calc(100vw - 32px);box-sizing:border-box;
   font-size:15px;line-height:1.6;text-align:center;background:rgba(12,8,22,.66);padding:10px 18px;border-left:2px solid var(--amber);opacity:0;transition:opacity .5s;pointer-events:none}
 #caption.show{opacity:1}
-#tip{position:fixed;z-index:12;top:calc(18px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));font-size:12px;color:var(--dim);background:rgba(12,8,22,.5);padding:6px 10px;max-width:50vw}
+#tip{position:fixed;z-index:12;top:calc(18px + env(safe-area-inset-top,0px));right:calc(max(16px,env(safe-area-inset-right,0px)) + 74px);font-size:12px;color:var(--dim);background:rgba(12,8,22,.5);padding:6px 10px;max-width:50vw}
 </style>
 </head>
 <body>
@@ -65,6 +80,31 @@ button.vr:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
 <canvas id="c"></canvas>
 <button id="home" type="button" hidden>← 行き先を選ぶ</button>
 <div id="tip" hidden>ドラッグで見回す · 光るパネルや床の輪をクリック</div>
+<button id="dbgToggle" type="button" hidden>テスト</button>
+<div id="debug" hidden>
+  <div id="dbgStat"></div>
+  <h3>親密度</h3>
+  <div class="grp">
+    <button type="button" data-dbg="p10">＋10</button><button type="button" data-dbg="p50">＋50</button>
+    <button type="button" data-dbg="up">段階を上げる</button><button type="button" data-dbg="down">段階を下げる</button>
+    <button type="button" data-dbg="stageline" class="wide">段階アップのセリフを再生</button>
+  </div>
+  <h3>イベント</h3>
+  <div class="grp">
+    <button type="button" data-dbg="question">質問する</button><button type="button" data-dbg="sulk">拗ねる</button>
+    <button type="button" data-dbg="visit">隣に座る</button><button type="button" data-dbg="invite">バーに誘う</button>
+    <button type="button" data-dbg="thunder">雷</button><button type="button" data-dbg="letter">手紙を置く</button>
+    <button type="button" data-dbg="yawn">あくび</button><button type="button" data-dbg="chat">ひとこと</button>
+  </div>
+  <h3>表情</h3>
+  <div class="grp">
+    <button type="button" data-dbg="e:wink">ウインク</button><button type="button" data-dbg="e:shy">はにかみ</button>
+    <button type="button" data-dbg="e:pout">拗ね顔</button><button type="button" data-dbg="e:worry">心配顔</button>
+  </div>
+  <h3>時間帯</h3>
+  <div class="grp"><button type="button" data-dbg="band" class="wide" id="dbgBand">実際の時刻</button></div>
+  <div class="grp"><button type="button" data-dbg="reset" class="wide" id="dbgReset">関係をリセット</button></div>
+</div>
 <div id="caption"></div>
 
 <section id="menu" class="screen">
@@ -75,6 +115,10 @@ button.vr:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
     <div class="dests">
       <button class="dest" type="button" data-space="cafe"><i>STREET LEVEL</i><b>カフェ「雨音」</b><span>窓際の席から、雨に濡れた路地と行き交う人々を眺める。窓を打つ雨音と暖かい灯り。</span></button>
       <button class="dest" type="button" data-space="bar"><i>ALT 52M</i><b>空中バー「宵闇」</b><span>街の上に浮かぶテラス。眼下を空飛ぶ車が流れ、巨大なホログラムがゆっくり回る。</span></button>
+    </div>
+    <div class="namebox">
+      <label for="yourname">ユイに呼んでほしい名前</label>
+      <div class="row"><input id="yourname" type="text" maxlength="10" placeholder="例：ハル" autocomplete="off"><span class="status" id="lovestat"></span><button id="lovereset" type="button">関係をリセット</button></div>
     </div>
     <div class="row">
       <button id="vrbtn" class="vr" type="button" disabled>VRで入る（カフェから）</button>
@@ -1596,7 +1640,9 @@ const header=makeButton(.44,.13,(g,W,H)=>{
   g.textBaseline='top';g.textAlign='right';g.fillStyle='#98a0bd';g.font=`${H*.15}px "Share Tech Mono",monospace`;g.fillText(hm,W-18,16);
   const cw=g.measureText(hm).width;
   g.textAlign='left';g.fillStyle='#ffc27a';g.font=`700 ${H*.17}px ${JPFONT}`;
-  let base=SPACES[space].name+' · '+SPACES[space].seats[seatIdx].name,title=base;while(g.measureText(title).width>W-60-cw&&base.length>2){base=base.slice(0,-1);title=base+'…';}
+  g.textAlign='right';g.fillStyle='#ff7ab6';g.font=`${H*.14}px ${JPFONT}`;const st=loveStage();g.fillText('♥'.repeat(st)+'♡'.repeat(5-st),W-18,H*.2);const hw=g.measureText('♥♥♥♥♥').width;
+  g.textAlign='left';g.fillStyle='#ffc27a';g.font=`700 ${H*.17}px ${JPFONT}`;
+  let base=SPACES[space].name+' · '+SPACES[space].seats[seatIdx].name,title=base;while(g.measureText(title).width>W-60-Math.max(cw,hw)&&base.length>2){base=base.slice(0,-1);title=base+'…';}
   g.fillText(title,24,14);
   g.textAlign='left';g.fillStyle='#eef3ff';g.font=`${H*.17}px ${JPFONT}`;
   let line='',y=H*.42,lines=0;for(const ch of captionText){if(g.measureText(line+ch).width>W-48){g.fillText(line,24,y);line=ch;y+=H*.22;if(++lines>=2)break;}else line+=ch;}
@@ -1611,6 +1657,8 @@ const DRINKS=[
 ];
 let musicOn=true,breathOn=false;
 const BTNS=[
+  {label:'思い出アルバム',sub:()=>(window.__loveReady?LOVE.memories.length:0)+'件',accent:'#ff7ab6',fn:()=>openAlbum()},
+  {label:()=>usualDrink()?'いつもの':'おまかせ',sub:()=>{const u=usualDrink();return u?DRINKS.find(d=>d.id===u).label:'今日の一杯';},accent:'#ff7ab6',fn:()=>{const u=usualDrink();order(u?DRINKS.find(d=>d.id===u):pick(DRINKS));}},
   ...DRINKS.map(d=>({label:d.label,sub:d.sub||'注文',accent:'#ffc27a',fn:()=>order(d)})),
   {label:()=>breathOn?'深呼吸をやめる':'深呼吸する',sub:'1分',accent:'#3ef2ff',fn:()=>toggleBreath()},
   {label:()=>OUTLINE.on?'輪郭線を消す':'輪郭線を付ける',sub:()=>OUTLINE.on?'ON':'OFF',accent:'#3ef2ff',fn:()=>toggleOutline()},
@@ -1784,11 +1832,196 @@ function toggleMusic(){musicOn=!musicOn;if(audio.ctx)audio.music.gain.setTargetA
 
 /* ---------- actions ---------- */
 let capT=0;
-function caption(text,secs){let expr=null;const mt=text.match(/\{(wink|shy|pout|worry|smile|surprise)\}/);if(mt){expr=mt[1];text=text.replace(mt[0],'');}captionText=text;
+/* ---------- romance: affinity (5 stages), name, usual drink ---------- */
+const LOVE_STEPS=[0,25,70,140,240];
+const STAGE_NAMES=['初対面','常連さん','気になる人','特別な人','恋人'];
+const LOVE=(()=>{let d={};try{d=JSON.parse(localStorage.getItem('amayadori.love')||'{}')||{};}catch(e){}
+  return Object.assign({name:'',pts:0,visits:0,last:0,drinks:{},orderAt:0,asked:[],answers:{},letters:[],unread:[],memories:[]},d);})();
+window.__loveReady=true;
+function saveLove(){try{localStorage.setItem('amayadori.love',JSON.stringify(LOVE));}catch(e){}}
+function loveStage(){if(!window.__loveReady)return 1;let st=1;for(let i=0;i<LOVE_STEPS.length;i++)if(LOVE.pts>=LOVE_STEPS[i])st=i+1;return st;}
+function callName(){const st=loveStage(),n=LOVE.name;
+  if(!n)return st>=4?'あなた':'お客さま';
+  if(st===1)return 'お客さま';if(st<=3)return n+'さん';if(st===4)return n+'さん';return n;}
+function usualDrink(){if(!window.__loveReady)return null;let best=null,c=0;for(const k in LOVE.drinks)if(LOVE.drinks[k]>c){c=LOVE.drinks[k];best=k;}return c>=3?best:null;}
+let pendingStageUp=0;
+function addLove(n){const before=loveStage();LOVE.pts=Math.max(0,LOVE.pts+n);saveLove();const after=loveStage();
+  if(after>before){pendingStageUp=after;setTimeout(stageUpEvent,6500);}redrawUI();updateLoveStat();}
+const STAGE_UP={
+  2:'{smile}……{name}、すっかり常連さんですね。これからも、来てくれたらうれしいです',
+  3:'{shy}あの……{name}が来ると、なんだか一日がちょっとだけ明るくなるんです。……変ですよね',
+  4:'{shy}……ねえ、{name}。私、あなたが来るの、いつのまにか待つようになってました',
+  5:'{shy}……好きです、{name}。この雨が止まなくても、あなたが来てくれるなら、それでいいなって'};
+function stageUpEvent(){if(!pendingStageUp)return;const st=pendingStageUp;pendingStageUp=0;
+  addMemory('stage'+st,['','','常連さんになった','気になる人になった','特別な人になった','恋人になった'][st]);
+  if(!LOVE.letters.includes(st)){LOVE.letters.push(st);LOVE.unread.push(st);saveLove();setTimeout(()=>{if(active)caption(SPACES[space].staff+'「{shy}……あ、あの。カウンターに置いたもの、あとで読んでくださいね」',6);},9500);}
+  caption(SPACES[space].staff+'「'+STAGE_UP[st]+'」',8);spawnHearts(st>=4?14:9);audio.chime();setTimeout(()=>audio.chime(),350);}
+// ---- stage-specific lines
+const LOVE_GREET={
+  cafe:{1:'{smile}いらっしゃいませ。今夜も雨ですね。どうぞ、ゆっくりしていってください',2:'{smile}あ、{name}、こんばんは。今夜も来てくれたんですね',3:'{shy}{name}……！ ふふ、待ってました。今日も雨ですね',4:'{wink}おかえりなさい、{name}。あなたの席、ちゃんと空けておきましたよ',5:'{shy}おかえり、{name}。……会いたかった'},
+  bar:{1:'{wink}来てくれたんですね。夜はここでバーテンダーをしているんです。雨の上の特等席へようこそ',2:'{smile}{name}、こんばんは。今夜は上の方にいらしたんですね',3:'{shy}{name}が来てくれると思って、グラス、多めに磨いておきました',4:'{wink}今夜も来てくれた。……ふふ、ちょっと期待してたんです',5:'{shy}{name}、こっち。……今夜は、二人で雨を見ませんか'}};
+const LOVE_IDLE={
+  1:['{smile}今夜の雨は細かいですね。こういう夜は、時間がゆっくり流れます','{smile}おかわりはいつでもどうぞ。急ぐ理由はここにはありません','下の通りの傘、上から見ると花畑みたいなんですよ','{worry}寒くないですか？ 暖房、少し上げましょうか'],
+  2:['{smile}{name}、いつもこの席ですよね。ふふ、覚えちゃいました','{wink}おかわりはいつでもどうぞ。{name}なら一杯サービスです','{worry}今日は、少しお疲れみたいですね','{smile}閉店時間は決めていないんです。好きなだけいてくださいね'],
+  3:['{shy}……あ、目が合っちゃいました','{pout}……私のこと、ちゃんと見てます？ ふふ、冗談です','{wink}その席、{name}の指定席にしておきますね','{shy}{name}が来る日は、なんだかコーヒーがおいしく淹れられるんです'],
+  4:['{pout}……{name}、ほかのお店にも行ってるんですか？','{shy}今日、来てくれるかなって、ずっと扉を見てました','{wink}{name}にだけ、新作の味見をお願いしようかな','{worry}{name}、ちゃんとご飯食べてます？ 心配です'],
+  5:['{shy}……ねえ、{name}。今夜はもう少しだけ、いてくれる？','{wink}{name}のぶんのカップ、私のとおそろいにしちゃいました','{shy}閉店したら、一緒に雨の音、聞いてもいい？','{pout}……{name}、今ほかの子のこと考えてたでしょ'] };
+const LOVE_CHAT={
+  1:['{smile}雨の音って、ずっと聞いていられますよね','このお店、夜が深くなると少しだけ静かになるんです','{worry}傘、持ってきました？ 帰り、濡れないか心配です','{smile}コーヒーの香りって、落ち着きますよね'],
+  2:['今日は、どんな一日でしたか？','{smile}{name}は、雨の日って好きですか？ 私は好きです','{worry}ちゃんと眠れてます？ 無理はしないでくださいね','{wink}窓の雨粒、どれが先に落ちるか賭けません？'],
+  3:['{shy}……あんまり見られると、ちょっと照れます','{shy}こうやって並んで座るの、実は好きなんです','{wink}今の話、ほかのお客さんには内緒ですよ','{pout}最近、なかなか来てくれなかったじゃないですか'],
+  4:['{shy}{name}の隣って、なんだか落ち着くんです','{pout}……もう、すぐ窓の外ばっかり見るんだから','{wink}今夜のことは、二人だけの秘密です','{shy}……今夜は、帰りたくないなって思うこと、ありません？'],
+  5:['{shy}……手、少しだけ貸して。冷たいね','{shy}{name}といると、雨の音がやさしく聞こえるの','{wink}明日も来てくれたら、ご褒美あげる','{pout}……もう少しだけ、こっち見てて'] };
+const LOVE_VISIT={1:['{smile}……少しだけ、休憩させてくださいね','{smile}雨、まだ止みそうにないですね','{smile}さて、お仕事に戻ります。ごゆっくり'],
+  2:['{shy}……となり、いいですか？','{smile}ふふ。こうして並ぶと、雨の音がよく聞こえますね','{wink}そろそろ戻りますね。……また来ちゃうかも'],
+  3:['{shy}……となり、いいですか？ {name}の隣がいいなって','{smile}ふふ。こうして並ぶと、雨の音がよく聞こえますね','{wink}そろそろ戻りますね。……また来ちゃうかも'],
+  4:['{shy}{name}、ちょっとだけ、隣で休ませて','{shy}……こうしてると、時間を忘れちゃいますね','{pout}もう戻らなきゃ。……もっといたかったのに'],
+  5:['{shy}{name}の隣、私の場所ね','{shy}……ずっとこうしていたいな','{wink}すぐ戻ってくるから、待っててね']};
+function lovePool(pool,st){const out=[];for(let i=Math.max(1,st-1);i<=st;i++)out.push(...pool[i]);return out;}
+function loveLine(pool){const st=loveStage();return pick(lovePool(pool,st));}
+function loveGreet(sp){return SPACES[sp].staff+'「'+LOVE_GREET[sp][loveStage()]+'」';}
+// hearts rising from her when the relationship grows
+const heartTex=canvasTex(64,64,(g)=>{g.fillStyle='#ff6fa8';g.shadowColor='#ff9fc8';g.shadowBlur=10;g.beginPath();g.moveTo(32,54);g.bezierCurveTo(4,34,10,8,32,22);g.bezierCurveTo(54,8,60,34,32,54);g.fill();});
+const hearts=[];
+function spawnHearts(n){const st=robots[space==='cafe'?0:1];const base=new V3();if(st&&st.g)st.g.getWorldPosition(base);else base.copy(SPACES[space].seats[seatIdx].pos);
+  for(let i=0;i<n;i++){const sp2=new THREE.Sprite(new THREE.SpriteMaterial({map:heartTex,transparent:true,depthWrite:false,fog:false}));sp2.scale.setScalar(.06+Math.random()*.05);
+    sp2.position.set(base.x+(Math.random()-.5)*.5,base.y+1.3+Math.random()*.3,base.z+(Math.random()-.5)*.5);sp2.userData={life:0,max:2.2+Math.random(),vx:(Math.random()-.5)*.05,ph:Math.random()*6};scene.add(sp2);hearts.push(sp2);}}
+function updateHearts(dt){for(let i=hearts.length-1;i>=0;i--){const h=hearts[i],u=h.userData;u.life+=dt;h.position.y+=dt*.22;h.position.x+=Math.sin(u.life*3+u.ph)*.003+u.vx*dt;
+  h.material.opacity=Math.min(1,u.life*3)*Math.max(0,1-u.life/u.max);if(u.life>u.max){scene.remove(h);h.material.dispose();hearts.splice(i,1);}}}
+function updateLoveStat(){const el=$('lovestat');if(!el)return;const st=loveStage();el.textContent=LOVE.visits?`ユイとの関係：${STAGE_NAMES[st-1]}（${'♥'.repeat(st)}${'♡'.repeat(5-st)}）`:'';}
+function registerVisit(){const now=Date.now();absence=LOVE.last?(now-LOVE.last)/86400000:0;if(now-LOVE.last>30*60*1000){LOVE.visits++;LOVE.last=now;saveLove();addLove(LOVE.visits===1?0:5);if(LOVE.visits===1)addMemory('first','はじめて「雨音」に来た夜');}else{LOVE.last=now;saveLove();}}
+/* ---------- romance 2: choice dialogue, sulking after absence, time of day ---------- */
+const QUESTIONS=[
+  {id:'rain',min:2,q:'{smile}{name}は、雨の日って好きですか？',o:[['好きだよ',2,'{smile}よかった。私も、雨の夜が一番好きなんです','like'],['あまり好きじゃない',0,'{worry}そっか……じゃあ、ここでゆっくり雨宿りしていってくださいね','dislike'],['君がいるなら好き',4,'{shy}……もう。そういうこと言うの、ずるいです','you']]},
+  {id:'drink',min:2,q:'コーヒーと紅茶なら、どっち派ですか？',o:[['コーヒー',2,'{smile}ふふ、知ってました。いつもいい顔して飲んでますもん','coffee'],['紅茶',2,'{smile}じゃあ今度、とっておきの茶葉を仕入れておきますね','tea'],['君が淹れてくれるなら何でも',4,'{shy}……それ、一番うれしい答えです','you']]},
+  {id:'holiday',min:2,q:'お休みの日って、何してるんですか？',o:[['ずっと寝てる',1,'{smile}ふふ、わかります。雨の日のお布団って最高ですよね'],['街を歩いてる',2,'{wink}今度、おすすめの路地裏、教えてくださいね'],['ここに来てる',3,'{shy}……知ってます。だって、いつも待ってますから']]},
+  {id:'good',min:2,q:'{smile}今日、何かいいことありました？',o:[['あったよ',2,'{smile}ほんとですか？ 今度ゆっくり聞かせてくださいね'],['特にないかな',1,'{worry}じゃあ……これから、いい夜にしましょう'],['君に会えた',4,'{shy}……っ。急にそういうの、心臓に悪いです']]},
+  {id:'sleep',min:3,q:'{worry}眠れない夜って、ありますか？',o:[['よくある',2,'{worry}そういう夜は、ここに来てくださいね。私、起きてますから'],['あまりない',1,'{smile}よかった。ぐっすり眠れるのが一番です'],['君のことを考えてると',4,'{shy}……もう。今夜、私が眠れなくなっちゃいます']]},
+  {id:'think',min:3,q:'{shy}……私のこと、どう思ってます？',o:[['優しい店員さん',1,'{smile}ふふ、ありがとうございます。……店員さん、かあ'],['かわいいと思う',4,'{shy}……！ ちょ、ちょっと、こっち見ないでください'],['内緒',1,'{pout}えー、ずるい。いつか絶対、聞き出しますからね']]},
+  {id:'sky',min:3,q:'もし雨が止んだら、何がしたいですか？',o:[['空を見上げたい',2,'{smile}本物の空……きっと、きれいなんでしょうね'],['遠くへ行きたい',1,'{worry}……遠くへ行っても、たまには帰ってきてくださいね'],['君と散歩したい',4,'{shy}……約束ですよ。雨が止んだら、一番に誘ってください']]},
+  {id:'move',min:4,q:'{worry}……もし私が別のお店に移ったら、会いに来てくれます？',o:[['もちろん',4,'{shy}……よかった。その言葉だけで、がんばれます'],['遠くなければ',0,'{pout}……遠くても来てほしかったな'],['移らないで',3,'{shy}……ふふ。そう言ってくれると思ってました']]},
+  {id:'type',min:4,q:'{shy}{name}の好きなタイプって、どんな人ですか？',o:[['優しい人',2,'{smile}優しい人、かあ。……私、優しくできてるかな'],['笑顔がかわいい人',3,'{shy}……今、笑わないように必死です'],['君みたいな人',5,'{shy}……っ、もう。顔、見られないです']]},
+  {id:'future',min:5,q:'{shy}……ねえ、{name}。これからも、ずっとここに来てくれる？',o:[['ずっと来るよ',4,'{shy}……うん。じゃあ私も、ずっとここで待ってる'],['できるだけ',1,'{pout}できるだけ、かあ。……ふふ、正直で好き'],['今度は外で会おう',5,'{shy}……！ うん。雨が止んでも、止まなくても、絶対']]}
+];
+const SULK_Q={q:'{pout}……どうして、しばらく来てくれなかったんですか？',o:[['ごめん、忙しくて',2,'{worry}……そっか。無理してないなら、いいんです。おかえりなさい'],['会いたかったよ',4,'{shy}……っ。ずるいです。そう言われたら、許すしかないじゃないですか'],['そうだっけ？',-3,'{pout}……もう知りません。……でも、来てくれたのはうれしいです']]};
+// floating choice buttons (work with mouse, touch and VR pointer)
+const choicePanel=new THREE.Group();choicePanel.visible=false;scene.add(choicePanel);
+let choiceQ=null,choiceT=0;const choiceLabels=['','',''];
+const choiceBtns=[0,1,2].map(i=>{const b=makeButton(.5,.06,btnDraw(()=>choiceLabels[i],null,'#ff7ab6'),()=>answerChoice(i));b.mesh.position.set(0,-i*.07,0);choicePanel.add(b.mesh);return b;});
+function showChoice(Q){if(choiceQ)return false;choiceQ=Q;choiceT=0;Q.o.forEach((o,i)=>choiceLabels[i]=o[0]);
+  const s2=SPACES[space].seats[seatIdx],f=fwdOf(s2.yaw),flat=!renderer.xr.isPresenting;
+  choicePanel.position.copy(s2.pos).add(f.clone().multiplyScalar(flat?.9:.65)).add(rightOf(s2.yaw).multiplyScalar(flat?-.42:-.3));choicePanel.position.y=s2.pos.y+(flat?1.27:1.12);
+  choicePanel.lookAt(s2.pos.x,s2.pos.y+(flat?1.3:1.25),s2.pos.z);choicePanel.visible=true;choiceBtns.forEach(b=>b.redraw());
+  caption(SPACES[space].staff+'「'+Q.q+'」',25);return true;}
+function answerChoice(i){if(!choiceQ)return;const Q=choiceQ,o=Q.o[i];choiceQ=null;choicePanel.visible=false;
+  if(Q.id){LOVE.answers[Q.id]=o[3]||i;}
+  if(Q===SULK_Q)addMemory('sulk','久しぶりに来て、拗ねられた夜');
+  if(Q.onAnswer){Q.onAnswer(i);return;}
+  caption(SPACES[space].staff+'「'+o[2]+'」',7);if(o[1]>=4)spawnHearts(4);addLove(o[1]);}
+function updateChoice(dt){if(!choiceQ)return;choiceT+=dt;if(choiceT>25){choiceQ=null;choicePanel.visible=false;caption(SPACES[space].staff+'「{smile}……ふふ、答えはまた今度でいいですよ」',5);}}
+function askQuestion(){const st=loveStage();if(st<2||choiceQ)return false;
+  let pool=QUESTIONS.filter(q=>q.min<=st&&!LOVE.asked.includes(q.id));
+  if(!pool.length){LOVE.asked=[];pool=QUESTIONS.filter(q=>q.min<=st);}
+  const Q=pick(pool);LOVE.asked.push(Q.id);saveLove();return showChoice(Q);}
+// lines that remember your answers
+function memoryLines(){const a=LOVE.answers,out=[];
+  if(a.rain==='like')out.push('{smile}雨好きの{name}には、今夜は最高の夜ですね');
+  if(a.rain==='you')out.push('{shy}……「君がいるなら雨も好き」って言ってくれたの、まだ覚えてますからね');
+  if(a.drink==='tea')out.push('{wink}{name}のために、いい茶葉、仕入れておきましたよ');
+  if(a.drink==='coffee')out.push('{smile}今日の豆、{name}好みの深煎りにしてみました');
+  return out;}
+// time of day (real clock)
+let bandOverride=null;
+function timeBand(){if(bandOverride)return bandOverride;const h=new Date().getHours();return h>=18&&h<22?'evening':h>=22||h<1?'night':h<4?'late':h<6?'dawn':'day';}
+const TIME_LINES={
+  late:['{yawn}ふぁ……ご、ごめんなさい。こんな時間まで、起きてるんですね','{smile}夜中のお店って、なんだか秘密基地みたいじゃないですか？'],
+  dawn:['{worry}もうすぐ朝ですよ。……ここには朝、来ないですけど','{yawn}ふぁ……{name}も、眠くないですか？'],
+  day:['{wink}こんな明るい時間に来るなんて、珍しいですね。……ここはいつでも夜ですけど','{smile}お昼休みですか？ ゆっくりしていってくださいね'],
+  night:['{smile}夜が深くなってきましたね。雨の音も、少しやさしくなった気がします'],
+  evening:[]};
+const LATE_IDLE=['{yawn}ふぁ……。……今の、見なかったことにしてください','{shy}夜中になると、なんだか本音が出やすくなりますね','{worry}眠かったら、無理しないで帰ってくださいね。……ほんとは、いてほしいけど'];
+// absence (days since the last visit, measured before this visit)
+let absence=0;
+function loveGreetText(sp){const st=loveStage();
+  if(absence>=3&&st>=3)return SPACES[sp].staff+'「'+(st>=5?'{pout}……{name}。何日来なかったか、数えてたんだから':'{pout}……{name}、お久しぶりです。……べつに、待ってなかったですけど')+'」';
+  if(absence>=7&&st===2)return SPACES[sp].staff+'「{worry}{name}！ お久しぶりです。……ちょっと、心配してました」';
+  return loveGreet(sp);}
+function arrivalSequence(sp){let t2=700;
+  setTimeout(()=>caption(loveGreetText(sp)),t2);t2+=7000;
+  if(absence>=3&&loveStage()>=3){const a0=absence;absence=0;setTimeout(()=>{if(active&&!showChoice(SULK_Q))return;},t2);return;}
+  absence=0;
+  const tl=TIME_LINES[timeBand()];if(tl&&tl.length&&loveStage()>=1){setTimeout(()=>{if(active)caption(SPACES[space].staff+'「'+pick(tl)+'」',6);},t2);t2+=7000;}
+  const u=usualDrink();if(u&&loveStage()>=2)setTimeout(()=>{if(active&&seatIdx===SPACES[space].spawn&&!choiceQ)caption(SPACES[space].staff+'「{smile}{name}、いつもの'+DRINKS.find(d=>d.id===u).label+'でいいですか？」',6);},t2);}
+/* ---------- romance 3: invitation to the bar, letters, thunder, memory album ---------- */
+let hemiBase=.07,sessionT=0,invitedThisVisit=false,nextThunder=300,thunderFlash=0;
+function fmtDate(t){const d=new Date(t);return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;}
+function addMemory(id,title){if(LOVE.memories.some(m=>m.id===id))return;LOVE.memories.push({id,title,t:Date.now()});saveLove();redrawUI();}
+// --- letters
+const LETTERS={
+  2:'{call}へ\n\nいつも来てくれて、ありがとうございます。\n雨の夜にあなたが扉を開けると、\nお店の空気が少しだけ明るくなる気がします。\n\nこれからも、ここで待っていますね。\n\n　　　　　　　　　　　　　ユイ',
+  3:'{call}へ\n\n手紙なんて書くの、久しぶりです。\n最近、カウンターを拭きながら、\n扉のベルが鳴るのを待っている自分に気づきました。\n\n……それが誰なのかは、まだ内緒です。\n\n　　　　　　　　　　　　　ユイ',
+  4:'{call}へ\n\nあなたの「いつもの」を淹れるとき、\nいちばん丁寧にお湯を注いでいます。\n気づいてました？\n\n雨が止まない街でよかった。\nだって、あなたが雨宿りに来てくれるから。\n\n　　　　　　　　　　　　　ユイ',
+  5:'{call}へ\n\n好きです。\nちゃんと言葉にできたから、もう一度、文字にも残しておきます。\n\nこの街に朝が来なくても、\nあなたがいる夜なら、ずっと続いてほしい。\n\nこれからも、隣にいてね。\n\n　　　　　　　　　　　　　あなたのユイ'};
+const envelope=new THREE.Mesh(new THREE.BoxGeometry(.17,.004,.11),[0,1,2,3,4,5].map(i=>new THREE.MeshStandardMaterial({color:0xf2e8d4,roughness:.8,map:i===2?canvasTex(256,166,(g)=>{g.fillStyle='#f2e8d4';g.fillRect(0,0,256,166);g.strokeStyle='rgba(120,90,60,.35)';g.lineWidth=2;
+  g.beginPath();g.moveTo(0,0);g.lineTo(128,92);g.lineTo(256,0);g.stroke();g.fillStyle='#a8202e';g.beginPath();g.arc(128,92,16,0,7);g.fill();g.fillStyle='#e8a0a8';g.font='700 18px serif';g.textAlign='center';g.fillText('♥',128,99);
+  g.fillStyle='#5a4030';g.font=`16px ${JPFONT}`;g.fillText('ユイより',128,150);}):null})));
+envelope.visible=false;scene.add(envelope);
+envelope.userData.btn={onSelect:()=>{if(LOVE.unread.length)openLetter(LOVE.unread[0]);},redraw(){envelope.material[2].emissive.setHex(this.hover?0x553322:0);},hover:false};
+envelope.material[2].emissive=new THREE.Color(0);hoverables.push(envelope);
+function updateEnvelope(){const show=active&&LOVE.unread.length>0&&seatIdx===SPACES[space].spawn&&!reader.visible;envelope.visible=show;
+  if(show){const s2=SPACES[space].seats[seatIdx];envelope.position.copy(s2.drink).addScaledVector(rightOf(s2.yaw),-.22);envelope.position.y=s2.drink.y+.003;envelope.rotation.y=s2.yaw+.25;}}
+// --- reader (letters & album), a sheet of paper floating in front of you
+const reader=new THREE.Group();reader.visible=false;scene.add(reader);
+const rc=cvs(768,900),rTex=new THREE.CanvasTexture(rc);
+const paper=new THREE.Mesh(new THREE.PlaneGeometry(.52,.61),new THREE.MeshBasicMaterial({map:rTex,depthTest:false,depthWrite:false,transparent:true,fog:false}));paper.renderOrder=40;reader.add(paper);
+const readerClose=makeButton(.22,.05,btnDraw('閉じる',null,'#ffc27a'),()=>closeReader());readerClose.mesh.position.set(0,-.35,0);reader.add(readerClose.mesh);
+const letterBtns=[2,3,4,5].map((st,i)=>{const b=makeButton(.12,.045,btnDraw(()=>'手紙'+(i+1),null,'#ff7ab6'),()=>openLetter(st));b.mesh.position.set(-.195+i*.13,-.285,0);reader.add(b.mesh);return b;});
+function placeReader(){const s2=SPACES[space].seats[seatIdx],f=fwdOf(s2.yaw),flat=!renderer.xr.isPresenting;
+  reader.position.copy(s2.pos).add(f.clone().multiplyScalar(flat?.95:.7));reader.position.y=s2.pos.y+(flat?1.38:1.3);reader.lookAt(s2.pos.x,s2.pos.y+1.4,s2.pos.z);reader.visible=true;panel.visible=false;}
+function closeReader(){reader.visible=false;panel.visible=true;}
+function paperBase(g){g.fillStyle='#f4ecdc';g.fillRect(0,0,768,900);for(let i=0;i<6000;i++){g.fillStyle=`rgba(120,90,50,${Math.random()*.05})`;g.fillRect(Math.random()*768,Math.random()*900,2,2);}
+  g.strokeStyle='rgba(160,120,80,.18)';for(let y=150;y<860;y+=52){g.beginPath();g.moveTo(60,y);g.lineTo(708,y);g.stroke();}}
+function openLetter(st){const g=rc.getContext('2d');paperBase(g);g.fillStyle='#3a2a20';g.font=`32px ${JPFONT}`;g.textBaseline='alphabetic';
+  const txt=LETTERS[st].replace('{call}',LOVE.name?(loveStage()>=5?LOVE.name:LOVE.name+'さん'):'あなた');let y=140;
+  for(const line of txt.split('\n')){let l='';for(const ch of line){if(g.measureText(l+ch).width>640&&!'。、」』）！？'.includes(ch)){g.fillText(l,64,y);y+=52;l=ch;}else l+=ch;}g.fillText(l,64,y);y+=52;}
+  g.fillStyle='#a8202e';g.font='40px serif';g.fillText('♥',680,860);rTex.needsUpdate=true;
+  letterBtns.forEach(b=>b.mesh.visible=false);placeReader();
+  const k=LOVE.unread.indexOf(st);if(k>=0){LOVE.unread.splice(k,1);saveLove();addMemory('letter'+st,'ユイからの手紙（'+(st-1)+'通目）');spawnHearts(5);}}
+function openAlbum(){const g=rc.getContext('2d');paperBase(g);g.fillStyle='#3a2a20';g.font=`700 40px ${JPFONT}`;g.textAlign='center';g.fillText('思い出アルバム',384,90);g.textAlign='left';
+  g.font=`26px ${JPFONT}`;g.fillStyle='#8a6a50';g.fillText(`ユイとの関係：${STAGE_NAMES[loveStage()-1]}　来店 ${LOVE.visits} 回`,64,135);
+  const list=LOVE.memories.slice(-13);let y=190;g.font=`28px ${JPFONT}`;
+  if(!list.length){g.fillStyle='#8a6a50';g.fillText('まだ思い出はありません。',64,y);}
+  for(const m of list){g.fillStyle='#a8202e';g.fillText('♥',64,y);g.fillStyle='#8a6a50';g.font='22px monospace';g.fillText(fmtDate(m.t),104,y);g.fillStyle='#3a2a20';g.font=`28px ${JPFONT}`;g.fillText(m.title,270,y);y+=50;}
+  rTex.needsUpdate=true;letterBtns.forEach((b,i)=>{b.mesh.visible=LOVE.letters.includes(i+2)&&!LOVE.unread.includes(i+2);});placeReader();}
+// --- invitation to the bar (café, stage 3+, once per visit)
+const INVITE_Q={q:'{shy}……あの、{name}。このあと、上のバーに来ませんか？ 夜は私、あっちにいるんです',o:[['行く',3,''],['今日はここでいいかな',0,'{smile}ふふ、わかりました。じゃあ、今夜はここでゆっくりしましょう'],['君がいるならどこでも',4,'']],
+  onAnswer(i){if(i===1){caption(SPACES[space].staff+'「'+this.o[1][2]+'」',6);return;}addLove(this.o[i][1]);addMemory('invite','上のバーに誘われた夜');
+    caption(SPACES[space].staff+'「{shy}……！ じゃあ、先に行って待ってますね」',4);
+    setTimeout(()=>{goSpace('bar',1);setTimeout(()=>{caption('バーテンダーのユイ「{shy}……来てくれた。ふふ、ここが私のもうひとつの場所です。'+(loveStage()>=4?'あなたにだけ、見せたかった':'ゆっくりしていってください')+'」',8);spawnHearts(10);},1600);},3500);}};
+// --- thunder
+function thunder(){thunderFlash=1;setTimeout(()=>thunderFlash=.85,140);setTimeout(()=>thunderFlash=1,300);
+  if(audio.ctx){const c=audio.ctx,t=c.currentTime+.6+Math.random()*.6;
+    const n=c.createBufferSource();n.buffer=audio.noise;n.loop=true;const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=140;const g=c.createGain();
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.55,t+.08);g.gain.exponentialRampToValueAtTime(.18,t+.8);g.gain.exponentialRampToValueAtTime(.0001,t+4.5);n.connect(f);f.connect(g);g.connect(audio.master);n.start(t);n.stop(t+4.6);
+    const k=c.createBufferSource();k.buffer=audio.noise;const kf=c.createBiquadFilter();kf.type='bandpass';kf.frequency.value=1200;const kg=c.createGain();kg.gain.setValueAtTime(.25,t);kg.gain.exponentialRampToValueAtTime(.0001,t+.35);k.connect(kf);kf.connect(kg);kg.connect(audio.master);k.start(t,.3);k.stop(t+.4);}
+  setTimeout(()=>{if(!active)return;const st=robots[space==='cafe'?0:1];if(st&&st.express)st.express('surprise');
+    const lv=loveStage(),line=lv>=4?'{shy}きゃっ……！ ……ご、ごめんなさい。少しだけ、このままでいてもいいですか':lv>=3?'{surprise}ひゃっ……！ い、今の、すごかったですね……。……ちょっとだけ、怖かったです':'{surprise}わっ……！ 雷、近いですね。大丈夫でしたか？';
+    caption(SPACES[space].staff+'「'+line+'」',6);addMemory('thunder','雷が鳴った夜');if(lv>=3)addLove(1);},1300);}
+function updateRomance3(dt){
+  updateEnvelope();
+  if(thunderFlash>0){thunderFlash=Math.max(0,thunderFlash-dt*2.2);}
+  hemi.intensity=hemiBase+thunderFlash*thunderFlash*(space==='cafe'?1.1:1.6);
+  if(!active)return;sessionT+=dt;
+  nextThunder-=dt;if(nextThunder<=0&&!choiceQ&&!reader.visible){nextThunder=rand(420,780);thunder();}
+  if(!invitedThisVisit&&space==='cafe'&&seatIdx===SPACES.cafe.spawn&&loveStage()>=3&&sessionT>200&&!choiceQ&&!reader.visible&&Math.random()<dt/60){invitedThisVisit=true;showChoice(INVITE_Q);}
+}
+function caption(text,secs){text=text.replace(/\{name\}/g,callName());let expr=null;const mt=text.match(/\{(wink|shy|pout|worry|smile|surprise|yawn)\}/);if(mt){expr=mt[1];text=text.replace(mt[0],'');}captionText=text;
   {const sp=SPACES[space];if(sp&&text.indexOf(sp.staff)===0){const st=robots[space==='cafe'?0:1];if(st&&st.talk)st.talk(Math.min(6,(text.length-sp.staff.length)*.09));if(st&&st.express&&expr)st.express(expr);}}
   header.redraw();const el=$('caption');el.textContent=text;el.classList.add('show');capT=secs||6;}
 function order(d){
-  audio.chime();caption(SPACES[space].staff+d.line);
+  const isUsual=usualDrink()===d.id&&loveStage()>=2;
+  LOVE.drinks[d.id]=(LOVE.drinks[d.id]||0)+1;const now=Date.now();if(now-LOVE.orderAt>60000){LOVE.orderAt=now;addLove(3);}else saveLove();redrawUI();
+  audio.chime();caption(isUsual?SPACES[space].staff+'「{smile}はい、いつものですね。{name}の好きな味、ちゃんと覚えてますよ」':SPACES[space].staff+d.line);
   if(drinkObj){scene.remove(drinkObj);drinkObj=null;}
   const make=()=>{if(drinkObj)scene.remove(drinkObj);drinkObj=makeDrink(d.id);scene.add(drinkObj);placeDrink();addOutlines(drinkObj);};
   const st=robots[space==='cafe'?0:1];
@@ -1814,18 +2047,19 @@ function applySeat(){
   if(window.__mirror)window.__mirror.visible=space==='cafe';
   scene.environment=ENV[space]||ENV.cafe;
   if(space==='cafe'){hemi.color.setHex(0xffd9b8);hemi.groundColor.setHex(0x2a1a12);hemi.intensity=.07;}else{hemi.color.setHex(0x6a4cff);hemi.groundColor.setHex(0x1a0820);hemi.intensity=.2;}
+  hemiBase=hemi.intensity;
   const [rx,ry,rz,sx,hole]=sp.rain;rain.position.set(rx,ry,rz);rain.scale.x=sx;
   if(hole!==rainHole){rainHole=hole;for(let i=0;i<RAIN;i++)holeFix(i);rainGeo.attributes.position.needsUpdate=true;}
   placePanel();placeDrink();placeBreath();rebuildRings();redrawUI();audio.setSpace(space);
 }
 function goSeat(i){withFade(()=>{seatIdx=i;applySeat();});}
-function goSpace(sp,i){withFade(()=>{const changed=sp!==space;if(changed)for(const r of robots)if(r.resetHome)r.resetHome();space=sp;seatIdx=i||0;if(drinkObj&&changed){scene.remove(drinkObj);drinkObj=null;}applySeat();if(changed)setTimeout(()=>caption(SPACES[sp].greet),500);});}
+function goSpace(sp,i){withFade(()=>{const changed=sp!==space;if(changed)for(const r of robots)if(r.resetHome)r.resetHome();space=sp;seatIdx=i||0;if(drinkObj&&changed){scene.remove(drinkObj);drinkObj=null;}applySeat();if(changed)setTimeout(()=>caption(loveGreet(sp)),500);});}
 
 /* ---------- pointer (desktop / touch) ---------- */
 let yaw=0,pitch=0,active=false;const ray=new THREE.Raycaster(),ndc=new THREE.Vector2();
 let ptr=null,hoverBtn=null;
 function setHover(btn){if(hoverBtn===btn)return;if(hoverBtn){hoverBtn.hover=false;hoverBtn.redraw();}hoverBtn=btn;if(btn){btn.hover=true;btn.redraw();}canvas.classList.toggle('hover',!!btn);}
-function pickAt(x,y){ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,camera);const hits=ray.intersectObjects(hoverables.filter(m=>m.parent&&m.parent.visible!==false),false);return hits.length?hits[0].object.userData.btn:null;}
+function pickAt(x,y){ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,camera);const hits=ray.intersectObjects(hoverables.filter(m=>m.visible&&m.parent&&m.parent.visible!==false),false);return hits.length?hits[0].object.userData.btn:null;}
 canvas.addEventListener('pointerdown',e=>{if(!active||renderer.xr.isPresenting)return;ptr={id:e.pointerId,x:e.clientX,y:e.clientY,sx:e.clientX,sy:e.clientY};canvas.setPointerCapture(e.pointerId);});
 canvas.addEventListener('pointermove',e=>{
   if(!active||renderer.xr.isPresenting)return;
@@ -1852,7 +2086,7 @@ const controllers=[0,1].map(i=>{
   return c;
 });
 function updateVRPointers(){
-  const vis=hoverables.filter(m=>m.parent&&m.parent.visible!==false);const used=new Set();
+  const vis=hoverables.filter(m=>m.visible&&m.parent&&m.parent.visible!==false);const used=new Set();
   for(const c of controllers){
     tmpM.identity().extractRotation(c.matrixWorld);ray.ray.origin.setFromMatrixPosition(c.matrixWorld);ray.ray.direction.set(0,0,-1).applyMatrix4(tmpM);
     const hits=ray.intersectObjects(vis,false);const b=hits.length?hits[0].object.userData.btn:null;
@@ -1885,16 +2119,48 @@ $('vrbtn').addEventListener('click',async()=>{
 
 /* ---------- arrival ---------- */
 function enter(sp){
-  audio.init();active=true;$('menu').hidden=true;
-  const flat=!renderer.xr.isPresenting;$('home').hidden=!flat;$('tip').hidden=!flat;
+  audio.init();active=true;sessionT=0;invitedThisVisit=false;nextThunder=rand(240,480);$('menu').hidden=true;
+  const flat=!renderer.xr.isPresenting;$('home').hidden=!flat;$('tip').hidden=!flat;$('dbgToggle').hidden=!flat;
   for(const r of robots)if(r.resetHome)r.resetHome();space=sp;seatIdx=SPACES[sp].spawn||0;if(drinkObj){scene.remove(drinkObj);drinkObj=null;}
-  applySeat();setTimeout(()=>caption(SPACES[sp].greet),700);
+  registerVisit();applySeat();arrivalSequence(sp);
   fade={t:0,phase:'in'};blackout.material.opacity=1;
 }
 document.querySelectorAll('.dest').forEach(b=>b.addEventListener('click',()=>enter(b.dataset.space)));
-$('home').addEventListener('click',()=>{active=false;$('menu').hidden=false;$('home').hidden=true;$('tip').hidden=true;setHover(null);});
+{const inp=$('yourname');inp.value=LOVE.name||'';inp.addEventListener('input',()=>{LOVE.name=inp.value.trim().slice(0,10);saveLove();header.redraw();});
+ const rb=$('lovereset');let armed=false;rb.addEventListener('click',()=>{if(!armed){armed=true;rb.textContent='もう一度押すとリセットします';setTimeout(()=>{armed=false;rb.textContent='関係をリセット';},4000);return;}
+   armed=false;rb.textContent='リセットしました';Object.assign(LOVE,{pts:0,visits:0,last:0,drinks:{},orderAt:0,asked:[],answers:{},letters:[],unread:[],memories:[]});saveLove();updateLoveStat();redrawUI();});
+ updateLoveStat();}
+$('home').addEventListener('click',()=>{active=false;$('menu').hidden=false;$('home').hidden=true;$('tip').hidden=true;$('dbgToggle').hidden=true;$('debug').hidden=true;setHover(null);});
+/* ---------- test panel (top right) ---------- */
+{const BANDS=[null,'evening','night','late','dawn','day'],BAND_JP={evening:'夕方〜夜（18〜22時）',night:'夜（22〜1時）',late:'深夜（1〜4時）',dawn:'明け方（4〜6時）',day:'昼（6〜18時）'};let bi=0,resetArmed=false;
+ const staffNow=()=>robots[space==='cafe'?0:1];
+ const stat=()=>{const st=loveStage(),next=LOVE_STEPS[st];$('dbgStat').textContent=`段階 ${st}：${STAGE_NAMES[st-1]}　${'♥'.repeat(st)}${'♡'.repeat(5-st)}\n親密度 ${LOVE.pts}${next!=null?' / 次まで '+(next-LOVE.pts):'（最大）'}`;$('dbgStat').style.whiteSpace='pre-line';};
+ const toSpawn=()=>{if(seatIdx!==SPACES[space].spawn)goSeat(SPACES[space].spawn);};
+ $('dbgToggle').addEventListener('click',()=>{$('debug').hidden=!$('debug').hidden;stat();});
+ $('debug').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const k=b.dataset.dbg,st=loveStage();
+   if(k==='p10')addLove(10);else if(k==='p50')addLove(50);
+   else if(k==='up'){if(st<5)addLove(LOVE_STEPS[st]-LOVE.pts);}
+   else if(k==='down'){if(st>1){LOVE.pts=LOVE_STEPS[st-2];saveLove();redrawUI();updateLoveStat();}}
+   else if(k==='stageline'){if(st>=2){pendingStageUp=st;stageUpEvent();}else caption('（段階2以上で再生できます）',3);}
+   else if(k==='question'){choiceQ=null;choicePanel.visible=false;if(!askQuestion()){const Q=pick(QUESTIONS);showChoice(Q);}}
+   else if(k==='sulk'){choiceQ=null;choicePanel.visible=false;caption(SPACES[space].staff+'「'+(st>=5?'{pout}……{name}。何日来なかったか、数えてたんだから':'{pout}……{name}、お久しぶりです。……べつに、待ってなかったですけど')+'」',5);setTimeout(()=>showChoice(SULK_Q),4500);}
+   else if(k==='visit'){toSpawn();setTimeout(()=>{const r=staffNow();if(r&&r.visit){r.resetHome();r.visit();}else caption('（モデルの読み込み中です）',3);},600);}
+   else if(k==='invite'){choiceQ=null;choicePanel.visible=false;if(space!=='cafe'){goSpace('cafe',SPACES.cafe.spawn);setTimeout(()=>showChoice(INVITE_Q),1800);}else{toSpawn();setTimeout(()=>showChoice(INVITE_Q),600);}}
+   else if(k==='thunder')thunder();
+   else if(k==='letter'){toSpawn();let n=[2,3,4,5].find(x=>!LOVE.letters.includes(x));if(n==null)n=Math.max(2,st);if(!LOVE.letters.includes(n))LOVE.letters.push(n);if(!LOVE.unread.includes(n))LOVE.unread.push(n);saveLove();
+     caption(SPACES[space].staff+'「{shy}……あ、あの。カウンターに置いたもの、あとで読んでくださいね」',5);}
+   else if(k==='yawn'){const r=staffNow();if(r&&r.express)r.express('yawn');}
+   else if(k==='chat'){const pool=lovePool(LOVE_IDLE,st).concat(memoryLines());caption(SPACES[space].staff+'「'+pick(pool)+'」');}
+   else if(k.startsWith('e:')){const r=staffNow();if(r&&r.express){r.express(k.slice(2));}}
+   else if(k==='band'){bi=(bi+1)%BANDS.length;bandOverride=BANDS[bi];b.textContent=bandOverride?'時間帯：'+BAND_JP[bandOverride]:'実際の時刻';
+     const tl=bandOverride&&TIME_LINES[bandOverride];if(tl&&tl.length)caption(SPACES[space].staff+'「'+pick(tl)+'」',5);}
+   else if(k==='reset'){if(!resetArmed){resetArmed=true;b.textContent='もう一度押すとリセット';setTimeout(()=>{resetArmed=false;b.textContent='関係をリセット';},4000);}
+     else{resetArmed=false;b.textContent='関係をリセット';Object.assign(LOVE,{pts:0,visits:1,last:Date.now(),drinks:{},orderAt:0,asked:[],answers:{},letters:[],unread:[],memories:[]});saveLove();redrawUI();updateLoveStat();}}
+   setTimeout(stat,50);});
+ setInterval(()=>{if(!$('debug').hidden)stat();},1000);}
 
 /* ---------- loop ---------- */
+let loveTime=0;
 const robotLines=['「{smile}今夜の雨は細かいですね。こういう夜は、時間がゆっくり流れます」','「{wink}おかわりはいつでもどうぞ。急ぐ理由はここにはありません」','「下の通りの傘、上から見ると花畑みたいなんですよ」','「{shy}閉店時間は決めていないんです。好きなだけいてくださいね」','「{worry}寒くないですか？ 暖房、少し上げましょうか」','「{pout}……私のこと、ちゃんと見てます？ ふふ、冗談です」','「{worry}今日は、少しお疲れみたいですね」','「{wink}その席、あなたの指定席にしておきますね」'];
 let lastT=performance.now(),t=0,bbT=0,glassT=0,idleT=40,uiClock=0;
 function tick(){
@@ -1916,15 +2182,19 @@ function tick(){
   for(const s of steamSprites){s.userData.ph=(s.userData.ph+dt*.22)%1;const p=s.userData.ph;s.position.set(Math.sin(p*6+t)*.012,(s.userData.y0||.09)+p*.2,Math.cos(p*5+t)*.006);s.scale.setScalar(.03+p*.11);s.material.opacity=Math.sin(p*Math.PI)*.16;}
   for(const f of drinkAnims)f(t,dt);
   for(const f of propAnims)f(t,dt);
+  updateHearts(dt);updateChoice(dt);updateRomance3(dt);
+  if(active&&(timeBand()==='late'||timeBand()==='dawn')&&Math.random()<dt/150){const st2=robots[space==='cafe'?0:1];if(st2&&st2.express&&!choiceQ)st2.express('yawn');}
   updateNorens(t,dt);
   if(breathOn){breathT+=dt;const c=breathT%12;let k,txt;
     if(c<4){k=c/4;txt='吸って…';}else if(c<6){k=1;txt='止めて';}else{k=1-(c-6)/6;txt='吐いて…';}
     const e=.5-.5*Math.cos(k*Math.PI);orbCore.scale.setScalar(1+e*1.6);orbGlow.scale.setScalar(.6+e*1.4);setBreathCap(txt);
     if(breathT>60){breathOn=false;breathOrb.visible=false;caption('おつかれさまでした。少し、軽くなりましたか？');redrawUI();}}
+  if(thunderFlash>0){scene.fog.color.setRGB(.08+thunderFlash*.5,.04+thunderFlash*.5,.14+thunderFlash*.6);scene.background.copy(scene.fog.color);}else{scene.fog.color.setHex(0x150a24);scene.background.setHex(0x150a24);}
   if(active){
     if(!xr){rig.rotation.y=SPACES[space].seats[seatIdx].yaw+yaw;camera.rotation.set(pitch,0,0);}
     else updateVRPointers();
-    idleT-=dt;if(idleT<=0){idleT=rand(70,110);if(!breathOn)caption(SPACES[space].staff+pick(robotLines));}
+    if(seatIdx===SPACES[space].spawn&&!breathOn){loveTime+=dt;if(loveTime>90){loveTime=0;addLove(1);}}
+    idleT-=dt;if(idleT<=0){idleT=rand(70,110);if(!breathOn&&!choiceQ){if(loveStage()>=2&&Math.random()<.3&&askQuestion()){}else{const pool=lovePool(LOVE_IDLE,loveStage()).concat(memoryLines(),timeBand()==='late'||timeBand()==='dawn'?LATE_IDLE:[]);caption(SPACES[space].staff+'「'+pick(pool)+'」');}}}
     uiClock+=dt;if(uiClock>20){uiClock=0;header.redraw();}
   }else{rig.rotation.y+=dt*.03;}
   if(capT>0){capT-=dt;if(capT<=0)$('caption').classList.remove('show');}
@@ -2038,7 +2308,7 @@ function setupVRM(vrm,base,sp){
   const tmp=new V3(),tmp2=new V3(),inv=new THREE.Matrix4(),fwd=new V3(),qa=new THREE.Quaternion(),qp=new THREE.Quaternion(),qi=new THREE.Quaternion(),va=new V3(),vb=new V3(),vs=new V3(),ve=new V3(),vd=new V3(),vpole=new V3();
   const atHome=()=>g.position.distanceTo(P.home)<.05&&Math.abs(wrap(bodyYaw-P.yaw))<.08;
   const plan=list=>{queue=list;act=null;};
-  const say=i=>({t:'do',f:()=>caption(SPACES[sp].staff+'「'+P.lines[i]+'」',5)});
+  const say=i=>({t:'do',f:()=>caption(SPACES[sp].staff+'「'+LOVE_VISIT[loveStage()][i]+'」',5)});
   function pickPOI(){if(Math.random()<.25){fwd.set(Math.sin(bodyYaw),0,Math.cos(bodyYaw));return g.position.clone().addScaledVector(fwd,.45).setY(g.position.y+.75);}const q=pick(P.poi);return new V3(q[0],q[1],q[2]);}
   function newGaze(mode){if(mode!==gazeMode&&Math.random()<.4)blink=.15;gazeMode=mode;
     const leaning=sitPose==='lean'&&sitK>.5;
@@ -2058,7 +2328,7 @@ function setupVRM(vrm,base,sp){
   const o={g,vrm,space:sp,
     serve(){if(atHome()&&!walking&&sitK===0){serveT=1.8;}smile();},
     talk(sec){talkT=Math.max(talkT,sec);},
-    express(k){if(k==='smile'){smile();return;}exprKind=k;exprAge=0;exprDur=k==='wink'?1.6:k==='worry'?3.4:2.8;if(k==='worry'||k==='wink')lookViewerT=Math.max(lookViewerT,k==='worry'?3:1.6);},
+    express(k){if(k==='smile'){smile();return;}exprKind=k;exprAge=0;exprDur=k==='wink'?1.6:k==='worry'?3.4:k==='yawn'?2.6:k==='surprise'?1.8:2.8;if(k==='surprise')lookViewerT=0;if(k==='worry'||k==='wink')lookViewerT=Math.max(lookViewerT,k==='worry'?3:1.6);},
     setPose(p){if(p==='table'||p==='lap'||p==='lean')sitPose=p;else standPose=p;poseT=rand(12,26);},
     resetHome(){queue=[];act=null;walking=0;sitK=0;workKind=null;workK=0;inBack=false;pourLiq=null;stream.visible=false;g.position.copy(P.home);bodyYaw=P.yaw;g.rotation.y=bodyYaw;nextWander=rand(18,30);nextVisit=rand(60,90);nextBack=rand(90,160);},
     wander(){const off=(Math.random()<.5?-1:1)*rand(1.1,P.range),pt=P.home.clone().addScaledVector(P.axis,off),by=P.yaw+Math.PI;
@@ -2092,7 +2362,7 @@ function setupVRM(vrm,base,sp){
       if(!act&&!queue.length){
         if(atHome()){nextWander-=dt;nextVisit-=dt;nextBack-=dt;
           const playerHere=space===sp&&seatIdx===P.playerSeat&&!breathOn;
-          if(nextVisit<=0&&playerHere){o.visit();nextVisit=rand(150,240);nextWander=rand(25,40);}
+          if(nextVisit<=0&&playerHere){o.visit();const st=loveStage();nextVisit=[0,rand(300,420),rand(200,300),rand(150,240),rand(110,180),rand(80,140)][st];nextWander=rand(25,40);}
           else if(nextVisit<=0)nextVisit=rand(15,25);
           else if(nextBack<=0){o.backroom();nextBack=rand(120,220);nextWander=rand(25,40);}
           else if(nextWander<=0){if(Math.random()<.3)o.wander();else o.work();nextWander=rand(25,45);}}
@@ -2117,8 +2387,9 @@ function setupVRM(vrm,base,sp){
         else if(a.t==='smile'){smile();done=true;}
         else if(a.t==='do'){a.f();done=true;}
         else if(a.t==='stay'){staying=true;
-          if(a.e>=a.nc){a.nc=a.e+rand(30,50);let k;do{k=Math.floor(Math.random()*P.chat.length);}while(k===o._lastChat&&P.chat.length>1);o._lastChat=k;
-            caption(SPACES[sp].staff+'「'+P.chat[k]+'」',6);lookViewerT=Math.max(lookViewerT,3);if(Math.random()<.6)smile();}
+          if(a.e>=a.nc&&!choiceQ&&loveStage()>=2&&Math.random()<.35&&askQuestion()){a.nc=a.e+rand(35,50);lookViewerT=Math.max(lookViewerT,4);}
+          else if(a.e>=a.nc&&!choiceQ){a.nc=a.e+rand(30,50);const pool=lovePool(LOVE_CHAT,loveStage()).concat(loveStage()>=3?P.chat.slice(0,6):[],memoryLines(),timeBand()==='late'?LATE_IDLE:[]);let k;do{k=Math.floor(Math.random()*pool.length);}while(pool[k]===o._lastChat&&pool.length>1);o._lastChat=pool[k];
+            caption(SPACES[sp].staff+'「'+pool[k]+'」',6);addLove(1);lookViewerT=Math.max(lookViewerT,3);if(Math.random()<.6)smile();}
           else if(Math.random()<dt/25)smile();
           if(a.e>=a.d||seatIdx!==P.playerSeat||space!==sp)done=true;}
         else if(a.t==='work'){workKind=a.kind;pourLiq=a.liq||null;o._wd=a.d;o._we=a.e;if(a.e>=a.d){done=true;workKind=null;pourLiq=null;}}
@@ -2139,6 +2410,7 @@ function setupVRM(vrm,base,sp){
       exprAge+=dt;const eIn=clamp(exprAge/.25,0,1),eOut=clamp((exprDur-exprAge)/.4,0,1),eEnv=exprKind?Math.min(eIn,eOut):0;if(exprKind&&exprAge>exprDur)exprKind=null;
       const fwX=Math.sin(bodyYaw),fwZ=Math.cos(bodyYaw),lfX=Math.cos(bodyYaw),lfZ=-Math.sin(bodyYaw);
       if(exprKind==='shy'&&eEnv>.2){target=tmp.set(g.position.x+fwX*1.1-lfX*.75,g.position.y+(sitK>.5?1.12:1.25),g.position.z+fwZ*1.1-lfZ*.75);}
+      else if(exprKind==='surprise'&&eEnv>.1){target=tmp.set(sp==='cafe'?8:0,P.home.y+2.2,sp==='cafe'?6:20);}
       else if(exprKind==='pout'&&eEnv>.2&&exprAge>.6){target=tmp.set(viewer.x+lfX*.9,viewer.y,viewer.z+lfZ*.9);}
       else if(lookViewerT>0)target=viewer;
       else if(lookAtPt)target=lookAtPt;
@@ -2171,7 +2443,7 @@ function setupVRM(vrm,base,sp){
       if(spine)spine.rotation.set(curLean,yaw*.12-sw*.05*walkW,0);
       const br=Math.sin(t*1.5);if(chest)chest.rotation.set(br*.015-leanK*.12,yaw*.08+leanK*.1,0);
       if(neck)neck.rotation.set(pit*.35,yaw*.35,tilt*.4);
-      const eTilt=exprKind==='shy'?.16:exprKind==='worry'?.11:exprKind==='wink'?-.12:exprKind==='pout'?-.05:0,ePit=exprKind==='shy'?-.035:exprKind==='worry'?-.03:0;
+      const eTilt=exprKind==='shy'?.16:exprKind==='worry'?.11:exprKind==='wink'?-.12:exprKind==='pout'?-.05:0,ePit=exprKind==='shy'?-.035:exprKind==='worry'?-.03:exprKind==='yawn'?.1:exprKind==='surprise'?.06:0;
       if(head)head.rotation.set(pit*.5-sk*.12-nodN+ePit*eEnv,yaw*.5,tilt+eTilt*eEnv);
       // ---- arms by IK: pick hand targets in her frame, blend, solve
       const dL=tmp.set(...poseDef.L),dR=tmp2.set(...poseDef.R);
@@ -2230,16 +2502,20 @@ function setupVRM(vrm,base,sp){
       // a real smile narrows the eyes only for a moment: ~0.08 s in, 0.22 s hold, 0.2 s out
       const joy=smileAge<.08?smileAge/.08*.8:smileAge<.3?.8:smileAge<.5?.8*(1-(smileAge-.3)/.2):0;
       // expressions tied to the line being spoken
-      let eJoy=0,eAng=0,eSor=0,eU=0,eWinkR=0;
+      let eJoy=0,eAng=0,eSor=0,eU=0,eWinkR=0,eYawn=0;
       if(exprKind==='wink'){const a2=exprAge-.35;eWinkR=a2<0?0:a2<.08?a2/.08:a2<.38?1:a2<.55?1-(a2-.38)/.17:0;eJoy=.28*eEnv;}
       else if(exprKind==='shy'){eJoy=.24*eEnv;}
       else if(exprKind==='pout'){eAng=.2*eEnv;eU=.55*eEnv;}
       else if(exprKind==='worry'){eSor=.42*eEnv;}
+      else if(exprKind==='yawn'){eYawn=eEnv;}
+      let eSur=exprKind==='surprise'?eEnv:0;
       const joyAll=Math.max(joy,eJoy);
-      setBS('Joy',joyAll);setBS('Angry',eAng);setBS('Sorrow',eSor);setBS('BlinkR',eWinkR);setBS('Blink',(joy>.3||eWinkR>.05)?0:bl);
+      setBS('Joy',joyAll);setBS('Angry',eAng);setBS('Sorrow',eSor);setBS('BlinkR',eWinkR);setBS('Blink',(joy>.3||eWinkR>.05)?0:Math.max(bl,eYawn*.6));
       const quiet=1-Math.max(joyAll,eU*.8);
       if(talkT>0){talkT-=dt;const m=Math.abs(Math.sin(t*11))*(.35+.3*Math.abs(Math.sin(t*3.7)));setBS('A',m*.8*quiet);setBS('O',m*.25*Math.abs(Math.sin(t*5))*quiet);setBS('U',eU*(.7+.3*Math.abs(Math.sin(t*9))));}
       else{setBS('A',0);setBS('O',0);setBS('U',eU);}
+      if(eYawn>0){setBS('A',.9*eYawn);setBS('O',.2*eYawn);}
+      if(bsp){try{bsp.setValue('Surprised',eSur);}catch(e){}}if(eSur>0){setBS('O',Math.max(.35*eSur,0));setBS('Blink',0);}
       vrm.update(dt);
     }};
   return o;
