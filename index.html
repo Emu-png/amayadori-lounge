@@ -899,11 +899,12 @@ const robots=[];
     mirror.rotation.y=Math.PI/2;mirror.position.set(8.03,2.1,6);mirror.renderOrder=2;scene.add(mirror);
     window.__mirror=mirror;
     function sizeRT(){const xr=renderer.xr.isPresenting;const v=renderer.getDrawingBufferSize(new THREE.Vector2());
-      const w=xr?1024:Math.max(256,Math.round(v.x*.5)),h=xr?1024:Math.max(256,Math.round(v.y*.5));if(rt.width!==w||rt.height!==h)rt.setSize(w,h);}
+      const w=xr?640:Math.max(256,Math.round(v.x*.33)),h=xr?640:Math.max(256,Math.round(v.y*.33));if(rt.width!==w||rt.height!==h)rt.setSize(w,h);}
     mirror.onBeforeRender=function(r,sc,cam){
       mp.setFromMatrixPosition(mirror.matrixWorld);cp.setFromMatrixPosition(cam.matrixWorld);
       rot.extractRotation(mirror.matrixWorld);n.set(0,0,1).applyMatrix4(rot);
       view.subVectors(mp,cp);if(view.dot(n)>0)return;
+      if(!r.xr.isPresenting){mirror.userData.f=(mirror.userData.f||0)+1;if(mirror.userData.f%2)return;}
       sizeRT();
       view.reflect(n).negate().add(mp);
       rot.extractRotation(cam.matrixWorld);look.set(0,0,-1).applyMatrix4(rot).add(cp);
@@ -1422,7 +1423,7 @@ const CL={};
   CL.porc=[0xf2ece2,0x2a4a7a,0xd8c8a8,0x7a2a2a,0x3a6a5a,0xc8a050].map(c=>new THREE.MeshStandardMaterial({color:c,roughness:.3,envMapIntensity:.5}));
   CL.woodM=new THREE.MeshStandardMaterial({color:0x6a4a30,roughness:.6});
 })();
-function clutterItem(kind){const g=new THREE.Group();
+function clutterItem(kind){const g=new THREE.Group();g.userData.noOutline=true;
   if(kind==='jar'){g.add(new THREE.Mesh(lathe([[0,0],[.04,0],[.042,.11],[.032,.12],[.032,.13],[0,.13]],20),new THREE.MeshStandardMaterial({color:0xe8f0f2,transparent:true,opacity:.3,roughness:.05,depthWrite:false})));
     const fill=new THREE.Mesh(lathe([[0,.003],[.038,.003],[.038,.06+Math.random()*.04],[0,.06+Math.random()*.04]],16),new THREE.MeshStandardMaterial({color:pick([0x6a3a1a,0xc8a060,0x8a2a2a,0xe0d0b0,0x3a5a2a]),roughness:.8}));g.add(fill);
     const lid=new THREE.Mesh(new THREE.CylinderGeometry(.035,.035,.015,16),pick([CL.woodM,brassM,blackM]));lid.position.y=.137;g.add(lid);}
@@ -1447,14 +1448,16 @@ function clutterItem(kind){const g=new THREE.Group();
   else{const T2=pick(BOTTLE_TYPES);g.add(new THREE.Mesh(lathe(T2.p,16),new THREE.MeshStandardMaterial({color:T2.tint,transparent:true,opacity:.65,roughness:.08,depthWrite:false})));}
   return g;}
 const CLUTTER_KINDS=['jar','tin','vase','succulent','books','figurine','radio','camera','globe','lantern','teapot','bottle','jar','succulent','books','tin'];
+const CLUTTER_MAX={globe:1,radio:1,camera:1,teapot:2,lantern:2,figurine:2,vase:3},clutterUsed={};
+function pickKind(kinds){for(let tries=0;tries<12;tries++){const k=pick(kinds||CLUTTER_KINDS);if(CLUTTER_MAX[k]==null||(clutterUsed[k]||0)<CLUTTER_MAX[k]){clutterUsed[k]=(clutterUsed[k]||0)+1;return k;}}return pick(['jar','tin','books','bottle']);}
 // fill a line on a surface: start point, direction (unit), length, the yaw the items face
 function fillLine(start,dir,len,faceYaw,kinds,gapMin){let d=.05;
-  while(d<len-.08){const k=pick(kinds||CLUTTER_KINDS),it=clutterItem(k);const w=(k==='radio'?.24:k==='books'?.22:k==='globe'?.14:k==='teapot'?.14:.1);
+  while(d<len-.08){const k=pickKind(kinds),it=clutterItem(k);it.userData.noOutline=true;const w=(k==='radio'?.24:k==='books'?.22:k==='globe'?.14:k==='teapot'?.14:.1);
     if(d+w>len)break;const p=start.clone().addScaledVector(dir,d+w/2);it.position.copy(p);it.rotation.y=faceYaw+(Math.random()-.5)*.6;scene.add(it);d+=w+(gapMin||.03)+Math.random()*.08;}}
 function wallShelf(x0,x1,y,z,faceZ){ // shelf on a wall running along x, facing +z (faceZ=1) or -z (-1)
   const L=x1-x0,xc=(x0+x1)/2;const sl=slab(L,.24,.035,.006,walnutTopM,.005);sl.position.set(xc,y,z+faceZ*.12);scene.add(sl);
   for(const xx of [x0+.12,x1-.12]){const br=new THREE.Mesh(new THREE.BoxGeometry(.03,.16,.2),CL.woodM);br.position.set(xx,y-.08,z+faceZ*.1);scene.add(br);}
-  fillLine(new V3(x0,y+.035,z+faceZ*.12),new V3(1,0,0),L,faceZ>0?0:Math.PI);}
+  fillLine(new V3(x0,y+.035,z+faceZ*.12),new V3(1,0,0),L,faceZ>0?0:Math.PI,['jar','vase','succulent','books','figurine','tin','teapot'],.18);}
 function indStool(x,y,z){const g=new THREE.Group();g.position.set(x,y,z);g.rotation.y=Math.random()*6;scene.add(g);
   const seat=roundTop(.17,.04,walnutTopM);seat.position.y=.68;g.add(seat);
   for(let k=0;k<4;k++){const a=k*Math.PI/2+.4,l=new THREE.Mesh(new THREE.CylinderGeometry(.011,.011,.7,8),blackM);l.position.set(Math.cos(a)*.13,.34,Math.sin(a)*.13);l.rotation.set(Math.sin(a)*.12,0,-Math.cos(a)*.12);g.add(l);}
@@ -1471,7 +1474,7 @@ function hangingCanopy(axisAlongZ,c1,c2,fixedA,yTop,yBot,front,ceil,avoid){ceil=
   for(let i=0;i<n;i++){const p=P(front*.32,yBot+.025,c1+.08+i*(L-.16)/(n-1));m.makeTranslation(p.x,p.y,p.z);inst.setMatrixAt(i,m);}scene.add(inst);
   for(const b of [c1+.2,c2-.2])for(const a of [-.3,.3]){const r=new THREE.Mesh(new THREE.CylinderGeometry(.008,.008,ceil-yTop,6),blackM);r.position.copy(P(a,(ceil+yTop)/2,b));scene.add(r);}
   // things on top of the canopy
-  fillLine(P(0,yTop+.025,c1+.1),axisAlongZ?new V3(0,0,1):new V3(1,0,0),L-.2,front>0?(axisAlongZ?-Math.PI/2:Math.PI):(axisAlongZ?Math.PI/2:0),['jar','vase','succulent','bottle','lantern','tin','teapot']);
+  fillLine(P(0,yTop+.025,c1+.1),axisAlongZ?new V3(0,0,1):new V3(1,0,0),L-.2,front>0?(axisAlongZ?-Math.PI/2:Math.PI):(axisAlongZ?Math.PI/2:0),['jar','vase','succulent','bottle','lantern','tin'],.25);
   // glass pendants under it
   const cols=[0x3a8a5a,0xf2e8d8,0xd8a050,0xf2e8d8,0x3a8a5a];const shadeG=lathe([[.012,0],[.03,.02],[.06,.09],[.075,.12],[.07,.122],[.055,.092],[.026,.022],[.01,.002]],24);
   const k=Math.max(3,Math.round(L/1.6));for(let i=0;i<k;i++){let b=c1+.4+i*(L-.8)/(k-1);if(avoid!=null&&Math.abs(b-avoid)<.7)b=avoid+(b<avoid?-.75:.75);const drop=.16+(i%2)*.08,pos=P(front*.05,yBot-drop,b);
@@ -1508,18 +1511,17 @@ function clutterBuild(){
    plate.position.set(0,.33,-.08);reg.add(plate);const crank=new THREE.Mesh(new THREE.TorusGeometry(.05,.006,6,16,Math.PI),goldM);crank.position.set(.19,.1,0);crank.rotation.y=Math.PI/2;reg.add(crank);}
   {const it=clutterItem('vase');it.scale.setScalar(1.6);it.position.set(15.75,.955,2.75);scene.add(it);}
   for(const [z,k] of [[3.2,'jar'],[3.35,'jar'],[9.15,'tin'],[9.0,'succulent']]){const it=clutterItem(k);it.position.set(15.78,.955,z);scene.add(it);}
-  fillLine(new V3(17.32,.9,2.75),new V3(0,0,1),6.5,-Math.PI/2,['jar','tin','teapot','radio','jar','bottle','tin','succulent']);
+  fillLine(new V3(17.32,.9,2.75),new V3(0,0,1),6.5,-Math.PI/2,['jar','tin','teapot','jar','bottle','tin','succulent'],.22);
   // tall open shelf partition full of things (replaces the second lattice)
   {const x=10.25,z0=6.8,z1=10.3,L=z1-z0,zc=(z0+z1)/2,H=2.0,D=.36,frameM=CL.woodM;
    for(const y of [.04,.5,.95,1.42,1.98]){const b=new THREE.Mesh(new THREE.BoxGeometry(D,.035,L),frameM);b.position.set(x,y,zc);scene.add(b);}
    for(const z of [z0,z0+L/3,z0+2*L/3,z1]){const p2=new THREE.Mesh(new THREE.BoxGeometry(D,H,.04),frameM);p2.position.set(x,H/2,z);scene.add(p2);}
-   for(const y of [.06,.52,.97,1.44])for(const sd of [1,-1])fillLine(new V3(x+sd*.08,y,z0+.04),new V3(0,0,1),L-.08,sd>0?Math.PI/2:-Math.PI/2);
+   [.06,.52,.97,1.44].forEach((y,i)=>{const sd=i%2?-1:1;fillLine(new V3(x+sd*.06,y,z0+.04),new V3(0,0,1),L-.08,sd>0?Math.PI/2:-Math.PI/2,['jar','tin','books','succulent','vase','bottle','globe','radio','camera','figurine','teapot'],.28);});
    blob(x,0,zc,.7,L+.3,.45);}
   // wall shelves with knick-knacks
   wallShelf(13.45,15.05,2.42,.04,1);wallShelf(13.65,14.85,2.68,11.96,-1);
   // Edison bulbs over the tables and hanging plants
   for(const [x,z,d] of [[10.9,2.2,.9],[12.3,2.6,1.1],[11.0,4.0,.75],[12.6,7.4,.95],[11.0,8.2,1.15],[12.2,9.6,.8],[9.3,6.0,.7],[13.3,5.0,1.0]])edisonBulb(x,z,d,3.42);
-  hangingPlant(9.4,2.2,2.35,3.42);hangingPlant(9.4,9.8,2.4,3.42);hangingPlant(13.4,10.2,2.3,3.42);hangingPlant(16.9,1.0,2.35,3.42);
   // reading corner: leather armchair, side table, lamp; rugs
   armchair(12.95,10.85,Math.PI+.35,0xa8622e);
   {const st=new THREE.Mesh(lathe([[0,0],[.18,0],[.04,.04],[.03,.5],[.2,.52],[.2,.55],[0,.55]],24),CL.woodM);st.position.set(13.55,0,11.1);scene.add(st);
@@ -1530,8 +1532,7 @@ function clutterBuild(){
   persianRug(11.4,1.35,3.0,1.5);persianRug(11.75,9.0,1.8,2.2);
   // bar: canopy over the counter, cluttered back bar, hanging plants, radio
   hangingCanopy(false,-3.0,3.0,34.4,52+2.62,52+2.28,-1,52+3.63,0);
-  fillLine(new V3(-2.6,52.9,36.32),new V3(1,0,0),5.2,Math.PI,['jar','bottle','tin','radio','lantern','bottle','succulent','globe']);
-  for(const [x,z] of [[-3.4,33.6],[3.4,33.6]])hangingPlant(x,z,52+2.45,52+3.6);
+  fillLine(new V3(-2.6,52.9,36.32),new V3(1,0,0),5.2,Math.PI,['jar','bottle','tin','lantern','bottle','succulent'],.2);
   {const it=clutterItem('vase');it.scale.setScalar(1.5);it.position.set(-2.75,52.955,34.45);scene.add(it);}
 }
 function barPlants(){ficusTree(-6.3,52,36.2,1.25);ficusTree(6.4,52,36.0,1.15);monstera(-6.2,52,24.2,.95);
