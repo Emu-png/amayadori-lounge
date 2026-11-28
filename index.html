@@ -2288,7 +2288,19 @@ $('home').addEventListener('click',()=>{active=false;$('menu').hidden=false;$('h
  setInterval(()=>{if(!$('debug').hidden)stat();},1000);}
 
 /* ---------- loop ---------- */
-let loveTime=0;
+let loveTime=0,girlsTalkT=45;
+const GIRL_TALKS=[
+  [['yui','みやちゃん、豆の補充お願いできる？'],['miya','{smile}はーい！ あ、新しいカップも届いてましたよ'],['yui','{smile}ありがとう。助かるね']],
+  [['miya','{wink}ユイさん、さっきのお客さん、ユイさんのことずっと見てましたよー'],['yui','{shy}……もう、からかわないの'],['miya','えへへ、ごめんなさーい']],
+  [['miya','雨、今日も止まないですね'],['yui','{smile}このくらいの雨のほうが、お店は落ち着くよね'],['miya','{smile}たしかに！ 雨の音、好きです']],
+  [['yui','{worry}みやちゃん、ちゃんと休憩とってる？'],['miya','{smile}大丈夫です！ ユイさんこそ、ですよ'],['yui','{smile}ふふ、そうだね。あとで一緒にお茶しよっか']],
+  [['miya','ユイさん、ラテアートのコツ教えてください！'],['yui','{smile}手首の力を抜くのがコツかな'],['miya','{wink}今度、練習台になってくださいね'],['yui','{smile}ふふ、いいよ']],
+  [['yui','このあいだ作ったケーキ、評判よかったよ'],['miya','{shy}ほんとですか！？ ……えへへ、うれしい'],['yui','{smile}次は一緒に作ろうね']],
+  [['miya','{pout}ユイさん、最近ちょっと常連さんと仲良すぎません？'],['yui','{shy}そ、そんなことないよ……'],['miya','{wink}あやしいなー']]];
+function startGirlsTalk(){const y=staffOf('yui'),m=staffOf('miya');if(!y||!m||!y.vrm||!m.vrm||!y.idle||!y.idle()||!m.idle())return false;
+  const lines=pick(GIRL_TALKS),dur=lines.length*4+3.5;const walker=Math.random()<.5?m:y,stay=walker===m?y:m;
+  walker.meet(stay,dur);stay.meetWait(walker,dur);
+  lines.forEach((ln,k)=>setTimeout(()=>{if(!active||!y.inTalk()||!m.inTalk())return;setFocus(ln[0]);caption(CHARS[ln[0]].staff[space]+'「'+ln[1]+'」',4.2);},3200+k*4000));return true;}
 const robotLines=['「{smile}今夜の雨は細かいですね。こういう夜は、時間がゆっくり流れます」','「{wink}おかわりはいつでもどうぞ。急ぐ理由はここにはありません」','「下の通りの傘、上から見ると花畑みたいなんですよ」','「{shy}閉店時間は決めていないんです。好きなだけいてくださいね」','「{worry}寒くないですか？ 暖房、少し上げましょうか」','「{pout}……私のこと、ちゃんと見てます？ ふふ、冗談です」','「{worry}今日は、少しお疲れみたいですね」','「{wink}その席、あなたの指定席にしておきますね」'];
 let lastT=performance.now(),t=0,bbT=0,glassT=0,idleT=40,uiClock=0;
 function tick(){
@@ -2325,6 +2337,7 @@ function tick(){
     if(!xr){rig.rotation.y=SPACES[space].seats[seatIdx].yaw+yaw;camera.rotation.set(pitch,0,0);}
     else updateVRPointers();
     if(seatIdx===SPACES[space].spawn&&!breathOn){loveTime+=dt;if(loveTime>90){loveTime=0;addLove(1);}}
+    girlsTalkT-=dt;if(girlsTalkT<=0){girlsTalkT=startGirlsTalk()?rand(80,140):rand(10,20);}
     idleT-=dt;if(idleT<=0){idleT=rand(55,95);if(!breathOn&&!choiceQ){const pc=presentChars();setFocus(pc.length?pick(pc):'yui');if(loveStage()>=2&&Math.random()<.3&&askQuestion()){}else{const pool=lovePool(TX().LOVE_IDLE,loveStage()).concat(memoryLines(),timeBand()==='late'||timeBand()==='dawn'?LATE_IDLE:[]);caption(staffName()+'「'+pick(pool)+'」');}}}
     uiClock+=dt;if(uiClock>20){uiClock=0;header.redraw();}
   }else{rig.rotation.y+=dt*.03;}
@@ -2450,6 +2463,9 @@ const STAFF_PLAN_M={
 {const C=STAFF_PLAN_M.cafe,r=v=>{v.z=RZ(v.z);v.x=RX(v.x);};C.lane=C.lane.map(RZ);r(C.home);r(C.front);C.visit.forEach(r);r(C.seat);C.work.forEach(w=>r(w.at));C.poi.forEach(q=>{q[2]=RZ(q[2]);q[0]=RX(q[0]);});}
 {const B=STAFF_PLAN.bar,r=v=>{v.z=RZB(v.z);v.x=RXB(v.x);};B.lane=B.lane.map(RXB);r(B.home);B.visit.forEach(r);r(B.seat);B.back.forEach(r);STAFF_PLAN_M.bar.back.forEach(r);B.door.forEach(r);B.work.forEach(w=>r(w.at));}
 {const C=STAFF_PLAN.cafe,r=v=>{v.z=RZ(v.z);v.x=RX(v.x);};C.lane=C.lane.map(RZ);r(C.home);C.visit.forEach(r);r(C.seat);C.back.forEach(r);STAFF_PLAN_M.cafe.back.forEach(r);C.door.forEach(r);C.work.forEach(w=>r(w.at));C.poi.forEach(q=>{q[2]=RZ(q[2]);q[0]=RX(q[0]);});}
+const STAFF_DX_CAFE=.14,STAFF_DZ_BAR=-.26;
+{const sh=(pl,ax,d)=>{pl.home[ax]+=d;if(pl.front)pl.front[ax]+=d;pl.work.forEach(w=>w.at[ax]+=d);};
+ sh(STAFF_PLAN.cafe,'x',STAFF_DX_CAFE);sh(STAFF_PLAN_M.cafe,'x',STAFF_DX_CAFE);sh(STAFF_PLAN.bar,'z',STAFF_DZ_BAR);sh(STAFF_PLAN_M.bar,'z',STAFF_DZ_BAR);}
 // hand targets in her own frame (metres; +z = her front, +x = her left, y from the floor while standing)
 const ARM_POSES={
   down:   {L:[.19,.79,.02], R:[-.19,.79,.02], pole:'side', lean:-.02},
@@ -2485,7 +2501,7 @@ function setupVRM(vrm,base,sp,charId){charId=charId||'yui';
   {g.updateMatrixWorld(true);const lE=bone('LeftEye'),rE=bone('RightEye'),fw=new V3(Math.sin(P.yaw),0,Math.cos(P.yaw)),meshes=[];vrm.scene.traverse(m=>{if(m.isMesh)meshes.push(m);});
    if(lE&&rE&&head){const pl=lE.getWorldPosition(new V3()),pr=rE.getWorldPosition(new V3()),mid=pl.clone().add(pr).multiplyScalar(.5),ray=new THREE.Raycaster();
      for(const pe of [pl,pr]){const out=pe.clone().sub(mid);out.y=0;const lat=out.length();out.normalize();
-       const tgt=pe.clone().addScaledVector(out,lat*.72);tgt.y-=.038*SC;
+       const tgt=pe.clone().addScaledVector(out,lat*1.0);tgt.y-=.038*SC;
        ray.set(tgt.clone().addScaledVector(fw,.25),fw.clone().negate());const hit=ray.intersectObjects(meshes,false).find(h=>h.distance<.4);
        const at=hit?hit.point:tgt.clone().addScaledVector(fw,.06),nrm=hit&&hit.face?hit.face.normal.clone().transformDirection(hit.object.matrixWorld):fw.clone();
        const d=new THREE.Mesh(new THREE.PlaneGeometry(.04*SC,.024*SC),blushMat);d.position.copy(at).addScaledVector(nrm,.0015);d.lookAt(at.clone().add(nrm));d.renderOrder=5;scene.add(d);head.attach(d);blushes.push(d);}}}
@@ -2548,7 +2564,7 @@ function setupVRM(vrm,base,sp,charId){charId=charId||'yui';
     prepare(id,done){if(sitK>0)return false;
       if(o.char==='miya'){const F2=P.yaw,col=id==='mock'?0x5ff0ff:id==='coffee'?0x3a1a08:id==='tea'?0xd08a2a:0xc0661a;
         plan([{t:'walk',to:P.home.clone()},{t:'turn',yaw:F2},{t:'do',f:()=>audio.pour()},{t:'work',kind:'pour',d:3.2,liq:col},{t:'walk',to:P.front.clone()},{t:'turn',yaw:F2},{t:'do',f:()=>{serveT=1.8;smile();}},{t:'wait',d:.75},{t:'do',f:done},{t:'wait',d:1.2},{t:'walk',to:P.home.clone()},{t:'turn',yaw:F2}]);nextWander=Math.max(nextWander,rand(12,20));return true;}
-      const H=P.home,Y0=H.y,F=P.yaw,B2=P.yaw+Math.PI,at=(x,z)=>new V3(sp==='cafe'?RX(x):RXB(x),Y0,sp==='cafe'?RZ(z):RZB(z)),walk=v=>({t:'walk',to:v}),turn=y=>({t:'turn',yaw:y}),wk=(k,d,liq)=>({t:'work',kind:k,d,liq});
+      const H=P.home,Y0=H.y,F=P.yaw,B2=P.yaw+Math.PI,at=(x,z)=>new V3(sp==='cafe'?RX(x)+STAFF_DX_CAFE:RXB(x),Y0,sp==='cafe'?RZ(z):RZB(z)+STAFF_DZ_BAR),walk=v=>({t:'walk',to:v}),turn=y=>({t:'turn',yaw:y}),wk=(k,d,liq)=>({t:'work',kind:k,d,liq});
       const snd={t:'do',f:()=>audio.pour()},finish=[walk(H.clone()),turn(F),{t:'do',f:()=>{serveT=1.8;smile();}},{t:'wait',d:.75},{t:'do',f:done},{t:'wait',d:.8}];
       let steps;
       if(sp==='cafe'){
@@ -2562,6 +2578,11 @@ function setupVRM(vrm,base,sp,charId){charId=charId||'yui';
       }
       plan([...steps,...finish]);nextWander=Math.max(nextWander,rand(15,25));return true;},
     isSeated(){return sitK>.5;},
+    idle(){return !act&&!queue.length&&sitK===0&&lapK===0&&o._kiss==null&&!o._visiting&&!o._touring;},
+    inTalk(){return !!(act&&(act.t==='talk'||act.t==='faceRobot'))||queue.some(q=>q.t==='talk');},
+    meet(other,dur){const ax=P.axis.x?'x':'z',to=other.g.position.clone();const dirAx=Math.sign(g.position[ax]-to[ax])||1;to[ax]+=dirAx*.85;to.y=P.home.y;
+      plan([{t:'walk',to},{t:'faceRobot',r:other},{t:'talk',r:other,d:dur}]);},
+    meetWait(other,dur){plan([{t:'wait',d:1.2},{t:'faceRobot',r:other},{t:'talk',r:other,d:dur+1}]);},
     inEvent(){return lapK>.01||o._kiss!=null||!!(act&&(act.t==='mount'||act.t==='lapStay'||act.t==='dismount'));},
     kiss(){if(o._kiss!=null||o.char!=='yui')return;o._kiss=0;o._kf={};rcap(CHARS[o.char].staff[sp]+'「{shy}……{name}。ちょっとだけ、目を閉じて」',4);},
     lap(){if(sitK>0||o.char!=='yui')return;o._visiting=true;const S=SPACES[sp].seats[P.playerSeat],f=fwdOf(S.yaw),r=rightOf(S.yaw);
@@ -2611,7 +2632,7 @@ function setupVRM(vrm,base,sp,charId){charId=charId||'yui';
           else if(nextVisit<=0)nextVisit=rand(15,25);
           else if(nextBack<=0){o.backroom();nextBack=rand(120,220);nextWander=rand(25,40);}
           else if(nextWander<=0){const r=Math.random(),otherTour=robots.some(q=>q&&q!==o&&q.space===sp&&q._touring),canTour=!otherTour&&!(seatIdx!==P.playerSeat&&false);
-            if(o.char==='miya'){if(r<.28&&canTour)o.tour();else if(r<.55)o.patrol();else o.roam();}else if(r<.3)o.wander();else if(r<.5)o.patrol();else if(r<.68&&canTour)o.tour();else o.work();nextWander=o.char==='miya'?rand(3,8):rand(6,13);}}
+            if(o.char==='miya'){if(r<.45&&canTour)o.tour();else if(r<.65)o.patrol();else o.roam();}else if(r<.18)o.wander();else if(r<.36)o.patrol();else if(r<.72&&canTour)o.tour();else o.work();nextWander=o.char==='miya'?rand(2,5):rand(3,7);}}
         else plan([{t:'walk',to:P.home.clone()},{t:'turn',yaw:P.yaw}]);
       }
       if(!act&&queue.length){act=queue.shift();act.e=0;}
@@ -2636,6 +2657,8 @@ function setupVRM(vrm,base,sp,charId){charId=charId||'yui';
           if(a.e>9&&!a.f.c){a.f.c=1;o.kiss();}
           if(a.e>18&&!a.f.d){a.f.d=1;rcap(CHARS[o.char].staff[sp]+'「{shy}……そろそろ戻らなきゃ。……もう少しだけ、こうしてたかったな」',6);}
           if(a.e>=a.d||seatIdx!==P.playerSeat||space!==sp)done=true;}
+        else if(a.t==='faceRobot'){const want=Math.atan2(a.r.g.position.x-g.position.x,a.r.g.position.z-g.position.z),prev=bodyYaw;bodyYaw=lerpA(bodyYaw,want,Math.min(1,dt*3));turnAmt=Math.abs(wrap(bodyYaw-prev));walking=.5;lookAtPt=a.r.g.position.clone().setY(a.r.g.position.y+1.42);if(Math.abs(wrap(want-bodyYaw))<.05||a.e>3)done=true;}
+        else if(a.t==='talk'){lookAtPt=a.r.g.position.clone().setY(a.r.g.position.y+1.42);if(a.e>=a.d)done=true;}
         else if(a.t==='faceViewer'){const want=Math.atan2(viewer.x-g.position.x,viewer.z-g.position.z),prev=bodyYaw;bodyYaw=lerpA(bodyYaw,want,Math.min(1,dt*3));turnAmt=Math.abs(wrap(bodyYaw-prev));walking=.5;if(Math.abs(wrap(want-bodyYaw))<.03)done=true;}
         else if(a.t==='sit'){sitK=Math.min(1,sitK+dt/1.1);if(sitK>=1)done=true;}
         else if(a.t==='stand'){sitK=Math.max(0,sitK-dt/1.0);if(sitK<=0)done=true;}
@@ -2654,6 +2677,15 @@ function setupVRM(vrm,base,sp,charId){charId=charId||'yui';
         if(done)act=null;
       }
       g.rotation.y=bodyYaw;
+      {const oth=robots.find(r=>r&&r!==o&&r.vrm&&r.space===sp&&r.g.visible!==false);let wantOff=0,twist=0,ox=0,oz=0;
+       if(oth&&sitK===0&&lapK===0){const dx=oth.g.position.x-g.position.x,dz=oth.g.position.z-g.position.z,d=Math.hypot(dx,dz);
+         if(d<.8&&d>.01&&!(act&&act.t==='talk')&&!(act&&act.t==='faceRobot')){const k=1-d/.8;
+           const ax=P.axis.x?'x':'z',perp=ax==='x'?'z':'x',inCounter=Math.abs(g.position[perp]-P.home[perp])<.35&&Math.abs(oth.g.position[perp]-P.home[perp])<.35;
+           let px,pz;if(inCounter){const back=new V3();back[perp]=sp==='cafe'?1:1;const me=walking>=1||!(oth._walk>.5);const amt=me?(o.char==='yui'?.13:.1):-.04;px=back.x*amt;pz=back.z*amt;}
+           else{px=dz/d*.12;pz=-dx/d*.12;} // step to own right
+           ox=px*k*1.4;oz=pz*k*1.4;twist=(walking>=1?.25:.55)*Math.min(1,k*1.6)*(o.char==='yui'?1:-1);}}
+       o._ox=(o._ox||0)+(ox-(o._ox||0))*Math.min(1,dt*5);o._oz=(o._oz||0)+(oz-(o._oz||0))*Math.min(1,dt*5);o._tw=(o._tw||0)+(twist-(o._tw||0))*Math.min(1,dt*4);
+       const c=Math.cos(-bodyYaw),s2=Math.sin(-bodyYaw);vrm.scene.position.set(o._ox*c+o._oz*s2,0,-o._ox*s2+o._oz*c);o._walk=walking;}
       // ---- pose selection (random, natural)
       poseT-=dt;
       if(poseT<=0){poseT=rand(12,26);
@@ -2702,7 +2734,7 @@ function setupVRM(vrm,base,sp,charId){charId=charId||'yui';
       const hy=1.52-.12*sitK-.14*leanK;let yaw=clamp(Math.atan2(tmp.x,tmp.z),-1.3,1.3),pit=clamp(Math.atan2(tmp.y-hy,Math.hypot(tmp.x,tmp.z)),-.5,.45);
       const tilt=Math.sin(t*.37)*.05+Math.sin(t*.91)*.025,nodN=Math.sin(t*.53)*.015+(talkT>0?Math.sin(t*6)*.025:0);
       const sk=serveT>0?Math.sin(clamp(1-serveT/1.8,0,1)*Math.PI):0;
-      if(spine)spine.rotation.set(curLean,yaw*.12-sw*.05*walkW,0);
+      if(spine)spine.rotation.set(curLean,yaw*.12-sw*.05*walkW+(o._tw||0),0);
       const br=Math.sin(t*1.5);if(chest)chest.rotation.set(br*.015-leanK*.12,yaw*.08+leanK*.1,0);
       if(neck)neck.rotation.set(pit*.35,yaw*.35,tilt*.4);
       const eTilt=exprKind==='shy'?.16:exprKind==='worry'?.11:exprKind==='wink'?-.12:exprKind==='pout'?-.05:0,ePit=exprKind==='shy'?-.035:exprKind==='worry'?-.03:exprKind==='yawn'?.1:exprKind==='surprise'?.06:0;
