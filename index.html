@@ -1982,7 +1982,7 @@ function loveGreet(sp){return staffName()+'「'+TX().LOVE_GREET[sp][loveStage()]
 // hearts rising from her when the relationship grows
 const heartTex=canvasTex(64,64,(g)=>{g.fillStyle='#ff6fa8';g.shadowColor='#ff9fc8';g.shadowBlur=10;g.beginPath();g.moveTo(32,54);g.bezierCurveTo(4,34,10,8,32,22);g.bezierCurveTo(54,8,60,34,32,54);g.fill();});
 const hearts=[];
-function spawnHearts(n){const st=staffOf(FOCUS);const base=new V3();if(st&&st.g)st.g.getWorldPosition(base);else base.copy(SPACES[space].seats[seatIdx].pos);
+function spawnHearts(n){return;const st=staffOf(FOCUS);const base=new V3();if(st&&st.g)st.g.getWorldPosition(base);else base.copy(SPACES[space].seats[seatIdx].pos);
   for(let i=0;i<n;i++){const sp2=new THREE.Sprite(new THREE.SpriteMaterial({map:heartTex,transparent:true,depthWrite:false,fog:false}));sp2.scale.setScalar(.06+Math.random()*.05);
     sp2.position.set(base.x+(Math.random()-.5)*.5,base.y+1.3+Math.random()*.3,base.z+(Math.random()-.5)*.5);sp2.userData={life:0,max:2.2+Math.random(),vx:(Math.random()-.5)*.05,ph:Math.random()*6};scene.add(sp2);hearts.push(sp2);}}
 function updateHearts(dt){for(let i=hearts.length-1;i>=0;i--){const h=hearts[i],u=h.userData;u.life+=dt;h.position.y+=dt*.22;h.position.x+=Math.sin(u.life*3+u.ph)*.003+u.vx*dt;
@@ -2432,16 +2432,16 @@ const STAFF_PLAN={
     chat:['{worry}風、冷たくないですか？ 寒かったら言ってくださいね','{worry}……今日は、少し疲れた顔してますね','{worry}雨、強くなってきましたね。帰り道、気をつけて','{wink}このカクテルのレシピ、あなたにだけ教えてあげます','{wink}特等席、ほかの人には譲らないでおきますね','{wink}今夜のことは、二人だけの秘密です','{shy}ふふ。こうして並ぶの、ちょっと緊張します','{shy}……今夜は、帰りたくないなって思うこと、ありません？','{shy}あの……私の顔、何かついてます？','{pout}さっき、ほかのお店の話してませんでした？','{pout}私が作ったカクテル、まだ感想聞いてないです','{pout}……もう、すぐ窓の外ばっかり見るんだから','{smile}ここから見ると、街が全部ネオンの海みたいでしょう？','{smile}下の通りの傘、上から見ると花畑みたいなんです','空飛ぶ車の光、流れ星みたいに見えるときがあるんです','あのホログラム、今日はゆっくり回ってますね']}
 };
 const STAFF_PLAN_M={
-  cafe:{home:new V3(16.06,0,8.9),yaw:-Math.PI/2,axis:new V3(0,0,1),range:.6,front:new V3(16.06,0,6),
+  cafe:{home:new V3(16.06,0,8.9),yaw:-Math.PI/2,axis:new V3(0,0,1),range:.6,front:new V3(16.06,0,6),lane:[2.7,9.6],
     door:[],visit:[new V3(16.2,0,10.6),new V3(14.1,0,10.6),new V3(14.1,0,5.0)],seat:new V3(15.0,0,5.3),sitYaw:Math.PI/2-.55,playerSeat:2,
     back:STAFF_PLAN.cafe.back.map(v=>v.clone()),backYaw:Math.PI/2,poi:STAFF_PLAN.cafe.poi.map(q=>q.slice()),
     work:[{kind:'wipe',at:new V3(16.06,0,9.4)},{kind:'polish',at:new V3(16.06,0,8.5)},{kind:'wipe',at:new V3(16.06,0,9.0)}],lines:[],chat:[]},
-  bar:{home:new V3(1.9,52,34.86),yaw:Math.PI,axis:new V3(1,0,0),range:.5,front:new V3(0,52,34.86),
+  bar:{home:new V3(1.9,52,34.86),yaw:Math.PI,axis:new V3(1,0,0),range:.5,front:new V3(0,52,34.86),lane:[-2.5,2.5],
     door:[],visit:[new V3(3.6,52,34.95),new V3(3.6,52,33.15),new V3(1.2,52,33.15)],seat:new V3(.7,52,33.82),sitYaw:-.7,playerSeat:1,
     back:STAFF_PLAN.bar.back.map(v=>v.clone()),backYaw:0,poi:STAFF_PLAN.bar.poi.map(q=>q.slice()),
     work:[{kind:'polish',at:new V3(2.3,52,34.86)},{kind:'wipe',at:new V3(1.5,52,34.86)}],lines:[],chat:[]}};
-{const B=STAFF_PLAN_M.bar,r=v=>{v.z=RZB(v.z);v.x=RXB(v.x);};r(B.home);r(B.front);B.visit.forEach(r);r(B.seat);B.work.forEach(w=>r(w.at));}
-{const C=STAFF_PLAN_M.cafe,r=v=>{v.z=RZ(v.z);v.x=RX(v.x);};r(C.home);r(C.front);C.visit.forEach(r);r(C.seat);C.work.forEach(w=>r(w.at));C.poi.forEach(q=>{q[2]=RZ(q[2]);q[0]=RX(q[0]);});}
+{const B=STAFF_PLAN_M.bar,r=v=>{v.z=RZB(v.z);v.x=RXB(v.x);};B.lane=B.lane.map(RXB);r(B.home);r(B.front);B.visit.forEach(r);r(B.seat);B.work.forEach(w=>r(w.at));}
+{const C=STAFF_PLAN_M.cafe,r=v=>{v.z=RZ(v.z);v.x=RX(v.x);};C.lane=C.lane.map(RZ);r(C.home);r(C.front);C.visit.forEach(r);r(C.seat);C.work.forEach(w=>r(w.at));C.poi.forEach(q=>{q[2]=RZ(q[2]);q[0]=RX(q[0]);});}
 {const B=STAFF_PLAN.bar,r=v=>{v.z=RZB(v.z);v.x=RXB(v.x);};r(B.home);B.visit.forEach(r);r(B.seat);B.back.forEach(r);STAFF_PLAN_M.bar.back.forEach(r);B.door.forEach(r);B.work.forEach(w=>r(w.at));}
 {const C=STAFF_PLAN.cafe,r=v=>{v.z=RZ(v.z);v.x=RX(v.x);};r(C.home);C.visit.forEach(r);r(C.seat);C.back.forEach(r);STAFF_PLAN_M.cafe.back.forEach(r);C.door.forEach(r);C.work.forEach(w=>r(w.at));C.poi.forEach(q=>{q[2]=RZ(q[2]);q[0]=RX(q[0]);});}
 // hand targets in her own frame (metres; +z = her front, +x = her left, y from the floor while standing)
@@ -2479,10 +2479,10 @@ function setupVRM(vrm,base,sp,charId){charId=charId||'yui';
   {g.updateMatrixWorld(true);const lE=bone('LeftEye'),rE=bone('RightEye'),fw=new V3(Math.sin(P.yaw),0,Math.cos(P.yaw)),meshes=[];vrm.scene.traverse(m=>{if(m.isMesh)meshes.push(m);});
    if(lE&&rE&&head){const pl=lE.getWorldPosition(new V3()),pr=rE.getWorldPosition(new V3()),mid=pl.clone().add(pr).multiplyScalar(.5),ray=new THREE.Raycaster();
      for(const pe of [pl,pr]){const out=pe.clone().sub(mid);out.y=0;const lat=out.length();out.normalize();
-       const tgt=pe.clone().addScaledVector(out,lat*.25);tgt.y-=.03*SC;
+       const tgt=pe.clone().addScaledVector(out,lat*.42);tgt.y-=.04*SC;
        ray.set(tgt.clone().addScaledVector(fw,.25),fw.clone().negate());const hit=ray.intersectObjects(meshes,false).find(h=>h.distance<.4);
        const at=hit?hit.point:tgt.clone().addScaledVector(fw,.06),nrm=hit&&hit.face?hit.face.normal.clone().transformDirection(hit.object.matrixWorld):fw.clone();
-       const d=new THREE.Mesh(new THREE.PlaneGeometry(.034*SC,.02*SC),blushMat);d.position.copy(at).addScaledVector(nrm,.0015);d.lookAt(at.clone().add(nrm));d.renderOrder=5;scene.add(d);head.attach(d);blushes.push(d);}}}
+       const d=new THREE.Mesh(new THREE.PlaneGeometry(.062*SC,.036*SC),blushMat);d.position.copy(at).addScaledVector(nrm,.0015);d.lookAt(at.clone().add(nrm));d.renderOrder=5;scene.add(d);head.attach(d);blushes.push(d);}}}
   let blushK=0;
   // props held in the hands (hand-bone frame: left hand points -x, right hand +x, palm -y)
   const cloth=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),new THREE.MeshStandardMaterial({color:0xefe9df,roughness:.95}));cloth.scale.set(.045,.018,.04);cloth.position.set(-.07,-.03,0);if(lH)lH.add(cloth);cloth.visible=false;
@@ -2566,6 +2566,13 @@ function setupVRM(vrm,base,sp,charId){charId=charId||'yui';
         {t:'dismount',from:lapPos.clone(),to:side.clone(),yaw:S.yaw,rigFrom:base2.clone(),rigTo:S.pos.clone()},...back.map(v=>({t:'walk',to:v.clone()})),{t:'walk',to:P.home.clone()},{t:'turn',yaw:P.yaw},{t:'do',f:()=>{o._visiting=false;}}]);},
     greetDoor(){if(sitK>0)return;plan([...P.door.map(v=>({t:'walk',to:v.clone()})),{t:'faceViewer'},{t:'viewer',d:8},{t:'wait',d:90}]);},
     returnHome(){const back=P.door.slice(0,-1).reverse();plan([...back.map(v=>({t:'walk',to:v.clone()})),{t:'walk',to:P.home.clone()},{t:'turn',yaw:P.yaw}]);nextWander=rand(8,14);},
+    roam(){ // Miya: walk to a free spot along the counter, linger, sometimes tidy up there
+      const ax=P.axis.x?'x':'z',yu=robots.find(r=>r&&r!==o&&r.vrm&&r.space===sp),yc=yu?yu.g.position[ax]:1e9;let c=null;
+      for(let k=0;k<10;k++){const v=rand(P.lane[0],P.lane[1]);if(Math.abs(v-yc)>1.1&&Math.abs(v-g.position[ax])>.5){c=v;break;}}
+      if(c==null){plan([{t:'wait',d:rand(2,4)}]);return;}
+      const to=P.home.clone();to[ax]=c;const r2=Math.random(),by=P.yaw+Math.PI;
+      const stay=r2<.45?[{t:'work',kind:pick(['wipe','polish']),d:rand(5,9)}]:r2<.75?[{t:'turn',yaw:by},{t:'pose',p:pick(['down','front'])},{t:'wait',d:rand(2,4),look:to.clone().add(new V3(Math.sin(by),0,Math.cos(by)).multiplyScalar(1.2)).setY(P.home.y+1.7)},{t:'turn',yaw:P.yaw}]:[{t:'wait',d:rand(3,7)}];
+      plan([{t:'walk',to},{t:'turn',yaw:P.yaw},...stay]);},
     work(w){w=w||pick(P.work);plan([{t:'walk',to:w.at.clone()},{t:'turn',yaw:P.yaw},{t:'work',kind:w.kind,d:rand(7,13)},{t:'wait',d:rand(.8,1.6)},{t:'walk',to:P.home.clone()},{t:'turn',yaw:P.yaw}]);},
     backroom(){const back=P.back.slice().reverse();
       plan([...P.back.map(v=>({t:'walk',to:v.clone()})),{t:'turn',yaw:P.backYaw},{t:'flag',v:true},{t:'work',kind:'wipe',d:rand(8,16)},{t:'flag',v:false},...back.slice(1).map(v=>({t:'walk',to:v.clone()})),{t:'walk',to:P.home.clone()},{t:'turn',yaw:P.yaw}]);},
@@ -2578,13 +2585,13 @@ function setupVRM(vrm,base,sp,charId){charId=charId||'yui';
     update(t,dt,viewer){
       // ---- scheduler
       if(!act&&!queue.length){
-        if(atHome()){nextWander-=dt;nextVisit-=dt;nextBack-=dt;
+        if(atHome()||(o.char==='miya'&&!walking)){nextWander-=dt;nextVisit-=dt;nextBack-=dt;
           const playerHere=space===sp&&seatIdx===P.playerSeat&&!breathOn;
           if(o.char==='yui'&&loveStageOf(o.char)>=5&&playerHere&&!lapDone&&!robots.some(r=>r&&r!==o&&r.space===sp&&r._visiting)&&sessionT>150&&!choiceQ&&Math.random()<dt/90){lapDone=true;setFocus('yui');showChoice(LAP_Q);}
           if(nextVisit<=0&&playerHere&&!robots.some(r=>r&&r!==o&&r.space===sp&&r._visiting)){o.visit();const st=loveStageOf(o.char);nextVisit=[0,rand(300,420),rand(200,300),rand(150,240),rand(110,180),rand(80,140)][st];nextWander=rand(25,40);}
           else if(nextVisit<=0)nextVisit=rand(15,25);
           else if(nextBack<=0){o.backroom();nextBack=rand(120,220);nextWander=rand(25,40);}
-          else if(nextWander<=0){if(Math.random()<.55)o.wander();else o.work();nextWander=rand(6,13);}}
+          else if(nextWander<=0){if(o.char==='miya')o.roam();else if(Math.random()<.55)o.wander();else o.work();nextWander=o.char==='miya'?rand(3,8):rand(6,13);}}
         else plan([{t:'walk',to:P.home.clone()},{t:'turn',yaw:P.yaw}]);
       }
       if(!act&&queue.length){act=queue.shift();act.e=0;}
@@ -2595,7 +2602,7 @@ function setupVRM(vrm,base,sp,charId){charId=charId||'yui';
           else{const want=Math.atan2(tmp.x,tmp.z),prev=bodyYaw;bodyYaw=lerpA(bodyYaw,want,Math.min(1,dt*4));turnAmt=Math.abs(wrap(bodyYaw-prev));
             const facing=Math.max(0,Math.cos(wrap(want-bodyYaw)));
             const nxt=queue[0],chain=nxt&&nxt.t==='walk';const ease=Math.min(1,a.e/.5)*(chain?1:Math.min(1,.35+dist/.45));
-            let step=Math.min(dist,.55*dt*ease*Math.max(.15,facing));if(o.blocked(tmp))step=0;g.position.addScaledVector(tmp.normalize(),step);stepDist=step;walking=1;}}
+            let step=Math.min(dist,.55*dt*ease*Math.max(.15,facing));if(o.blocked(tmp)){step=0;a.blk=(a.blk||0)+dt;if(a.blk>1.8){done=true;}}g.position.addScaledVector(tmp.normalize(),step);stepDist=step;walking=1;}}
         else if(a.t==='turn'){const prev=bodyYaw;bodyYaw=lerpA(bodyYaw,a.yaw,Math.min(1,dt*3));turnAmt=Math.abs(wrap(bodyYaw-prev));walking=.5;if(Math.abs(wrap(a.yaw-bodyYaw))<.03){bodyYaw=a.yaw;done=true;}}
         else if(a.t==='wait'){if(a.look)lookAtPt=a.look;if(a.e>=a.d)done=true;}
         else if(a.t==='pose'){standPose=a.p;poseT=rand(8,16);done=true;}
