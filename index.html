@@ -103,6 +103,11 @@ button.vr:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
     <button type="button" data-dbg="e:wink">ウインク</button><button type="button" data-dbg="e:shy">はにかみ</button>
     <button type="button" data-dbg="e:pout">拗ね顔</button><button type="button" data-dbg="e:worry">心配顔</button>
   </div>
+  <h3>頬の赤み</h3>
+  <div class="grp">
+    <button type="button" data-dbg="blush" class="wide" id="dbgBlush">赤みを表示する</button>
+    <button type="button" data-dbg="bin">← 内側へ</button><button type="button" data-dbg="bout">外側へ →</button>
+  </div>
   <h3>時間帯</h3>
   <div class="grp"><button type="button" data-dbg="band" class="wide" id="dbgBand">実際の時刻</button></div>
   <div class="grp"><button type="button" data-dbg="reset" class="wide" id="dbgReset">関係をリセット</button></div>
@@ -2261,7 +2266,7 @@ $('home').addEventListener('click',()=>{active=false;$('menu').hidden=false;$('h
  const toSpawn=()=>{if(seatIdx!==SPACES[space].spawn)goSeat(SPACES[space].spawn);};
  $('dbgToggle').addEventListener('click',()=>{$('debug').hidden=!$('debug').hidden;stat();});
  $('debug').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;const k=b.dataset.dbg;
-   if(k==='target'){dbgT=dbgT==='yui'?'miya':'yui';b.textContent='対象：'+CHARS[dbgT].name+'（押すと切り替え）';setFocus(dbgT);setTimeout(stat,50);return;}
+   if(k==='target'){dbgT=dbgT==='yui'?'miya':'yui';{const r=staffNow();$('dbgBlush').textContent=r&&r._blushTest?'赤みを消す':'赤みを表示する';}b.textContent='対象：'+CHARS[dbgT].name+'（押すと切り替え）';setFocus(dbgT);setTimeout(stat,50);return;}
    setFocus(dbgT);const st=loveStage();
    if((k==='kiss'||k==='lap'||k==='invite')&&dbgT!=='yui'){caption('（このイベントはユイだけです）',3);return;}
    if(k==='p10')addLove(10);else if(k==='p50')addLove(50);
@@ -2279,6 +2284,9 @@ $('home').addEventListener('click',()=>{active=false;$('menu').hidden=false;$('h
    else if(k==='kiss'){toSpawn();setTimeout(()=>{const r=staffNow();if(!r||!r.kiss){caption('（モデルの読み込み中です）',3);return;}if(r.isSeated&&r.isSeated())r.kiss();else{r.resetHome();r.visit();r._kissSoon=true;}},600);}
    else if(k==='lap'){toSpawn();setTimeout(()=>{const r=staffNow();if(!r||!r.lap){caption('（モデルの読み込み中です）',3);return;}choiceQ=null;choicePanel.visible=false;r.resetHome();r.lap();},600);}
    else if(k==='chat'){const pool=lovePool(TX().LOVE_IDLE,st).concat(memoryLines());caption(staffName()+'「'+pick(pool)+'」');}
+   else if(k==='blush'){const r=staffNow();if(!r||!r.blushShift){caption('（モデルの読み込み中です）',3);return;}r._blushTest=!r._blushTest;b.textContent=r._blushTest?'赤みを消す':'赤みを表示する';if(r._blushTest)toSpawn();}
+   else if(k==='bin'||k==='bout'){const r=staffNow();if(!r||!r.blushShift){caption('（モデルの読み込み中です）',3);return;}r._blushTest=true;$('dbgBlush').textContent='赤みを消す';r.blushShift(Math.round(((r._blushOff||0)+(k==='bout'?.2:-.2))*10)/10);
+     const v=5.7+(r._blushOff||0);caption(`（頬の赤み：顔の中心から ${v.toFixed(1)}cm　調整 ${(r._blushOff>=0?'+':'')+(r._blushOff||0).toFixed(1)}cm）`,4);}
    else if(k.startsWith('e:')){const r=staffNow();if(r&&r.express){r.express(k.slice(2));}}
    else if(k==='band'){bi=(bi+1)%BANDS.length;bandOverride=BANDS[bi];b.textContent=bandOverride?'時間帯：'+BAND_JP[bandOverride]:'実際の時刻';
      const tl=bandOverride&&TIME_LINES[bandOverride];if(tl&&tl.length)caption(staffName()+'「'+pick(tl)+'」',5);}
@@ -2501,10 +2509,10 @@ function setupVRM(vrm,base,sp,charId){charId=charId||'yui';
   {g.updateMatrixWorld(true);const lE=bone('LeftEye'),rE=bone('RightEye'),fw=new V3(Math.sin(P.yaw),0,Math.cos(P.yaw)),meshes=[];vrm.scene.traverse(m=>{if(m.isMesh)meshes.push(m);});
    if(lE&&rE&&head){const pl=lE.getWorldPosition(new V3()),pr=rE.getWorldPosition(new V3()),mid=pl.clone().add(pr).multiplyScalar(.5),ray=new THREE.Raycaster();
      for(const pe of [pl,pr]){const out=pe.clone().sub(mid);out.y=0;const lat=out.length();out.normalize();
-       const tgt=mid.clone().addScaledVector(out,.06*SC);tgt.y=pe.y-.039*SC; // ~6 cm out from the face centre (the eye bones sit near the midline)
+       const tgt=mid.clone().addScaledVector(out,.057*SC);tgt.y=pe.y-.039*SC; // ~5.7 cm out from the face centre (the eye bones sit near the midline)
        ray.set(tgt.clone().addScaledVector(fw,.25),fw.clone().negate());const hit=ray.intersectObjects(meshes,false).find(h=>h.distance<.4);
        const at=hit?hit.point:tgt.clone().addScaledVector(fw,.06),nrm=hit&&hit.face?hit.face.normal.clone().transformDirection(hit.object.matrixWorld):fw.clone();
-       const d=new THREE.Mesh(new THREE.PlaneGeometry(.038*SC,.023*SC),blushMat);d.position.copy(at).addScaledVector(nrm,.0015);d.lookAt(at.clone().add(nrm));d.renderOrder=5;scene.add(d);head.attach(d);blushes.push(d);}}}
+       const d=new THREE.Mesh(new THREE.PlaneGeometry(.038*SC,.023*SC),blushMat);d.position.copy(at).addScaledVector(nrm,.0015);d.lookAt(at.clone().add(nrm));d.renderOrder=5;scene.add(d);head.attach(d);d.userData.base=d.position.clone();d.userData.dir=head.worldToLocal(at.clone().addScaledVector(out,.01)).sub(head.worldToLocal(at.clone()));blushes.push(d);}}}
   let blushK=0;
   // props held in the hands (hand-bone frame: left hand points -x, right hand +x, palm -y)
   const cloth=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),new THREE.MeshStandardMaterial({color:0xefe9df,roughness:.95}));cloth.scale.set(.045,.018,.04);cloth.position.set(-.07,-.03,0);if(lH)lH.add(cloth);cloth.visible=false;
@@ -2578,6 +2586,7 @@ function setupVRM(vrm,base,sp,charId){charId=charId||'yui';
       }
       plan([...steps,...finish]);nextWander=Math.max(nextWander,rand(15,25));return true;},
     isSeated(){return sitK>.5;},
+    blushShift(cm){o._blushOff=cm;for(const d of blushes)d.position.copy(d.userData.base).addScaledVector(d.userData.dir,cm);},
     idle(){return !act&&!queue.length&&sitK===0&&lapK===0&&o._kiss==null&&!o._visiting&&!o._touring;},
     inTalk(){return !!(act&&(act.t==='talk'||act.t==='faceRobot'))||queue.some(q=>q.t==='talk');},
     meet(other,dur){const ax=P.axis.x?'x':'z',to=other.g.position.clone();const dirAx=Math.sign(g.position[ax]-to[ax])||1;to[ax]+=dirAx*.85;to.y=P.home.y;
@@ -2806,7 +2815,7 @@ function setupVRM(vrm,base,sp,charId){charId=charId||'yui';
       else if(exprKind==='worry'){eSor=.42*eEnv;}
       else if(exprKind==='yawn'){eYawn=eEnv;}
       const eKiss=exprKind==='kiss'?eEnv:0;
-      {const want=Math.max(exprKind==='shy'?eEnv*.85:0,eKiss,lapK*.55,o._kiss!=null?.9:0,exprKind==='pout'?eEnv*.12:0);blushK+=(want-blushK)*Math.min(1,dt*(want>blushK?3:1.2));blushMat.opacity=blushK;}
+      {const want=Math.max(exprKind==='shy'?eEnv*.85:0,eKiss,lapK*.55,o._kiss!=null?.9:0,exprKind==='pout'?eEnv*.12:0,o._blushTest?.9:0);blushK+=(want-blushK)*Math.min(1,dt*(want>blushK?3:1.2));blushMat.opacity=blushK;}
       let eSur=exprKind==='surprise'?eEnv:0;
       const joyAll=Math.max(joy,eJoy);
       setBS('Joy',joyAll);setBS('Angry',eAng);setBS('Sorrow',eSor);setBS('BlinkR',eWinkR);setBS('Blink',(joy>.3||eWinkR>.05)?0:Math.max(bl,eYawn*.6,eKiss*.95));
