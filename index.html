@@ -2501,10 +2501,10 @@ function setupVRM(vrm,base,sp,charId){charId=charId||'yui';
   {g.updateMatrixWorld(true);const lE=bone('LeftEye'),rE=bone('RightEye'),fw=new V3(Math.sin(P.yaw),0,Math.cos(P.yaw)),meshes=[];vrm.scene.traverse(m=>{if(m.isMesh)meshes.push(m);});
    if(lE&&rE&&head){const pl=lE.getWorldPosition(new V3()),pr=rE.getWorldPosition(new V3()),mid=pl.clone().add(pr).multiplyScalar(.5),ray=new THREE.Raycaster();
      for(const pe of [pl,pr]){const out=pe.clone().sub(mid);out.y=0;const lat=out.length();out.normalize();
-       const tgt=mid.clone().addScaledVector(out,.053*SC);tgt.y=pe.y-.038*SC; // ~5 cm out from the face centre (the eye bones sit near the midline)
+       const tgt=mid.clone().addScaledVector(out,.066*SC);tgt.y=pe.y-.040*SC; // ~6.5 cm out from the face centre (the eye bones sit near the midline)
        ray.set(tgt.clone().addScaledVector(fw,.25),fw.clone().negate());const hit=ray.intersectObjects(meshes,false).find(h=>h.distance<.4);
        const at=hit?hit.point:tgt.clone().addScaledVector(fw,.06),nrm=hit&&hit.face?hit.face.normal.clone().transformDirection(hit.object.matrixWorld):fw.clone();
-       const d=new THREE.Mesh(new THREE.PlaneGeometry(.04*SC,.024*SC),blushMat);d.position.copy(at).addScaledVector(nrm,.0015);d.lookAt(at.clone().add(nrm));d.renderOrder=5;scene.add(d);head.attach(d);blushes.push(d);}}}
+       const d=new THREE.Mesh(new THREE.PlaneGeometry(.036*SC,.022*SC),blushMat);d.position.copy(at).addScaledVector(nrm,.0015);d.lookAt(at.clone().add(nrm));d.renderOrder=5;scene.add(d);head.attach(d);blushes.push(d);}}}
   let blushK=0;
   // props held in the hands (hand-bone frame: left hand points -x, right hand +x, palm -y)
   const cloth=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),new THREE.MeshStandardMaterial({color:0xefe9df,roughness:.95}));cloth.scale.set(.045,.018,.04);cloth.position.set(-.07,-.03,0);if(lH)lH.add(cloth);cloth.visible=false;
