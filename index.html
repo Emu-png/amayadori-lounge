@@ -2414,7 +2414,7 @@ addOutlines(scene);
 applySeat();rig.rotation.y=SPACES.cafe.seats[seatIdx].yaw+.3;
 /* ---------- VRoid staff (staff.glb, VRM 0.0) ---------- */
 const STAFF_PLAN={
-  cafe:{home:new V3(16.06,0,6),yaw:-Math.PI/2,axis:new V3(0,0,1),range:1.6,
+  cafe:{home:new V3(16.06,0,6),yaw:-Math.PI/2,axis:new V3(0,0,1),range:1.6,lane:[2.7,9.6],
     door:[new V3(16.2,0,10.6),new V3(14.1,0,10.6),new V3(13.0,0,10.05),new V3(10.95,0,10.15)],
     visit:[new V3(16.2,0,10.6),new V3(14.1,0,10.6),new V3(14.1,0,7.3)],seat:new V3(15.0,0,6.7),sitYaw:Math.PI/2+.55,playerSeat:2,
     back:[new V3(16.5,0,10.0),new V3(17.5,0,10.85),new V3(18.6,0,10.85),new V3(19.9,0,10.6)],backYaw:Math.PI/2,
@@ -2422,7 +2422,7 @@ const STAFF_PLAN={
     work:[{kind:'machine',at:new V3(16.06,0,7.9)},{kind:'wipe',at:new V3(16.06,0,4.75)},{kind:'polish',at:new V3(16.06,0,5.2)},{kind:'wipe',at:new V3(16.06,0,3.6)}],
     lines:['{shy}……となり、いいですか？','{smile}ふふ。こうして並ぶと、雨の音がよく聞こえますね','{wink}そろそろ戻りますね。……また来ちゃうかも'],
     chat:['{worry}……疲れてませんか？ 顔に少し出てますよ','{worry}ちゃんと眠れてます？ 無理はしないでくださいね','{worry}傘、持ってきました？ 帰り、濡れないか心配です','{wink}今の話、ほかのお客さんには内緒ですよ','{wink}おかわり、一杯だけサービスしちゃいます','{wink}窓の雨粒、どれが先に落ちるか賭けません？','{shy}……あんまり見られると、ちょっと照れます','{shy}こうやって並んで座るの、実は好きなんです','{shy}……あ、いえ。なんでもないです。ふふ','{pout}最近、なかなか来てくれなかったじゃないですか','{pout}私のおすすめ、まだ飲んでくれてませんよね？','{pout}……ほかのお店の方が、居心地いいですか？','{smile}雨の音って、ずっと聞いていられますよね','{smile}コーヒーの香りって、落ち着きますよね','このお店、夜が深くなると少しだけ静かになるんです','こうしていると、時間がゆっくり流れる気がします']},
-  bar:{home:new V3(0,52,34.86),yaw:Math.PI,axis:new V3(1,0,0),range:1.3,
+  bar:{home:new V3(0,52,34.86),yaw:Math.PI,axis:new V3(1,0,0),range:1.3,lane:[-2.5,2.5],
     door:[new V3(-3.6,52,34.95),new V3(-3.7,52,35.35)],
     visit:[new V3(-3.6,52,34.95),new V3(-3.6,52,33.15),new V3(-1.2,52,33.15)],seat:new V3(-.7,52,33.82),sitYaw:.7,playerSeat:1,
     back:[new V3(3.8,52,35.3),new V3(5.1,52,36.3),new V3(5.1,52,37.5),new V3(5.0,52,38.6)],backYaw:0,
@@ -2431,6 +2431,12 @@ const STAFF_PLAN={
     lines:['{shy}……少しだけ、休憩してもいいですか？','{smile}ふふ。ここから見る雨、私も好きなんです','{wink}さて、お仕事に戻ります。今のは内緒の休憩ですよ'],
     chat:['{worry}風、冷たくないですか？ 寒かったら言ってくださいね','{worry}……今日は、少し疲れた顔してますね','{worry}雨、強くなってきましたね。帰り道、気をつけて','{wink}このカクテルのレシピ、あなたにだけ教えてあげます','{wink}特等席、ほかの人には譲らないでおきますね','{wink}今夜のことは、二人だけの秘密です','{shy}ふふ。こうして並ぶの、ちょっと緊張します','{shy}……今夜は、帰りたくないなって思うこと、ありません？','{shy}あの……私の顔、何かついてます？','{pout}さっき、ほかのお店の話してませんでした？','{pout}私が作ったカクテル、まだ感想聞いてないです','{pout}……もう、すぐ窓の外ばっかり見るんだから','{smile}ここから見ると、街が全部ネオンの海みたいでしょう？','{smile}下の通りの傘、上から見ると花畑みたいなんです','空飛ぶ車の光、流れ星みたいに見えるときがあるんです','あのホログラム、今日はゆっくり回ってますね']}
 };
+const TOUR={
+  cafe:[[16.2,10.6],[14.1,10.6],{x:14.7,z:11.35,face:0,kind:'wall'},[14.0,10.2],[13.0,10.05],{x:12.3,z:9.0,face:-Math.PI/2,kind:'wipelow'},
+    [12.6,7.3],[10.9,6.95],[10.75,6.0],[9.6,6.0],{x:9.0,z:7.2,face:-Math.PI/2,kind:'wipe'},[9.6,6.0],[10.75,6.0],[10.8,4.2],{x:11.0,z:3.2,face:Math.PI/2,kind:'wipelow'},
+    [10.8,4.2],[10.75,6.0],[10.9,6.95],[12.6,7.3],[13.9,7.8],[14.1,10.6],[16.2,10.6]],
+  bar:[[-3.6,34.95],[-3.6,33.15],[-2.6,31.6],[-2.5,26.6],{x:-1.5,z:25.9,face:-Math.PI/2,kind:'wipelow'},{x:.75,z:24.1,face:Math.PI,kind:'wipe'},
+    [3.0,24.8],[4.6,25.6],[4.6,29.2],{x:4.55,z:30.5,face:Math.PI/2,kind:'wipelow'},[4.0,31.9],[3.6,33.15],[3.6,34.95]]};
 const STAFF_PLAN_M={
   cafe:{home:new V3(16.06,0,8.9),yaw:-Math.PI/2,axis:new V3(0,0,1),range:.6,front:new V3(16.06,0,6),lane:[2.7,9.6],
     door:[],visit:[new V3(16.2,0,10.6),new V3(14.1,0,10.6),new V3(14.1,0,5.0)],seat:new V3(15.0,0,5.3),sitYaw:Math.PI/2-.55,playerSeat:2,
@@ -2442,8 +2448,8 @@ const STAFF_PLAN_M={
     work:[{kind:'polish',at:new V3(2.3,52,34.86)},{kind:'wipe',at:new V3(1.5,52,34.86)}],lines:[],chat:[]}};
 {const B=STAFF_PLAN_M.bar,r=v=>{v.z=RZB(v.z);v.x=RXB(v.x);};B.lane=B.lane.map(RXB);r(B.home);r(B.front);B.visit.forEach(r);r(B.seat);B.work.forEach(w=>r(w.at));}
 {const C=STAFF_PLAN_M.cafe,r=v=>{v.z=RZ(v.z);v.x=RX(v.x);};C.lane=C.lane.map(RZ);r(C.home);r(C.front);C.visit.forEach(r);r(C.seat);C.work.forEach(w=>r(w.at));C.poi.forEach(q=>{q[2]=RZ(q[2]);q[0]=RX(q[0]);});}
-{const B=STAFF_PLAN.bar,r=v=>{v.z=RZB(v.z);v.x=RXB(v.x);};r(B.home);B.visit.forEach(r);r(B.seat);B.back.forEach(r);STAFF_PLAN_M.bar.back.forEach(r);B.door.forEach(r);B.work.forEach(w=>r(w.at));}
-{const C=STAFF_PLAN.cafe,r=v=>{v.z=RZ(v.z);v.x=RX(v.x);};r(C.home);C.visit.forEach(r);r(C.seat);C.back.forEach(r);STAFF_PLAN_M.cafe.back.forEach(r);C.door.forEach(r);C.work.forEach(w=>r(w.at));C.poi.forEach(q=>{q[2]=RZ(q[2]);q[0]=RX(q[0]);});}
+{const B=STAFF_PLAN.bar,r=v=>{v.z=RZB(v.z);v.x=RXB(v.x);};B.lane=B.lane.map(RXB);r(B.home);B.visit.forEach(r);r(B.seat);B.back.forEach(r);STAFF_PLAN_M.bar.back.forEach(r);B.door.forEach(r);B.work.forEach(w=>r(w.at));}
+{const C=STAFF_PLAN.cafe,r=v=>{v.z=RZ(v.z);v.x=RX(v.x);};C.lane=C.lane.map(RZ);r(C.home);C.visit.forEach(r);r(C.seat);C.back.forEach(r);STAFF_PLAN_M.cafe.back.forEach(r);C.door.forEach(r);C.work.forEach(w=>r(w.at));C.poi.forEach(q=>{q[2]=RZ(q[2]);q[0]=RX(q[0]);});}
 // hand targets in her own frame (metres; +z = her front, +x = her left, y from the floor while standing)
 const ARM_POSES={
   down:   {L:[.19,.79,.02], R:[-.19,.79,.02], pole:'side', lean:-.02},
@@ -2479,10 +2485,10 @@ function setupVRM(vrm,base,sp,charId){charId=charId||'yui';
   {g.updateMatrixWorld(true);const lE=bone('LeftEye'),rE=bone('RightEye'),fw=new V3(Math.sin(P.yaw),0,Math.cos(P.yaw)),meshes=[];vrm.scene.traverse(m=>{if(m.isMesh)meshes.push(m);});
    if(lE&&rE&&head){const pl=lE.getWorldPosition(new V3()),pr=rE.getWorldPosition(new V3()),mid=pl.clone().add(pr).multiplyScalar(.5),ray=new THREE.Raycaster();
      for(const pe of [pl,pr]){const out=pe.clone().sub(mid);out.y=0;const lat=out.length();out.normalize();
-       const tgt=pe.clone().addScaledVector(out,lat*.42);tgt.y-=.04*SC;
+       const tgt=pe.clone().addScaledVector(out,lat*.72);tgt.y-=.038*SC;
        ray.set(tgt.clone().addScaledVector(fw,.25),fw.clone().negate());const hit=ray.intersectObjects(meshes,false).find(h=>h.distance<.4);
        const at=hit?hit.point:tgt.clone().addScaledVector(fw,.06),nrm=hit&&hit.face?hit.face.normal.clone().transformDirection(hit.object.matrixWorld):fw.clone();
-       const d=new THREE.Mesh(new THREE.PlaneGeometry(.062*SC,.036*SC),blushMat);d.position.copy(at).addScaledVector(nrm,.0015);d.lookAt(at.clone().add(nrm));d.renderOrder=5;scene.add(d);head.attach(d);blushes.push(d);}}}
+       const d=new THREE.Mesh(new THREE.PlaneGeometry(.04*SC,.024*SC),blushMat);d.position.copy(at).addScaledVector(nrm,.0015);d.lookAt(at.clone().add(nrm));d.renderOrder=5;scene.add(d);head.attach(d);blushes.push(d);}}}
   let blushK=0;
   // props held in the hands (hand-bone frame: left hand points -x, right hand +x, palm -y)
   const cloth=new THREE.Mesh(new THREE.SphereGeometry(1,12,8),new THREE.MeshStandardMaterial({color:0xefe9df,roughness:.95}));cloth.scale.set(.045,.018,.04);cloth.position.set(-.07,-.03,0);if(lH)lH.add(cloth);cloth.visible=false;
@@ -2530,12 +2536,12 @@ function setupVRM(vrm,base,sp,charId){charId=charId||'yui';
   const toLocal=(w,out)=>out.copy(w).applyMatrix4(inv);
   const rcap=(...a)=>{setFocus(o.char);caption(...a);};
   const o={g,vrm,space:sp,char:charId,
-    blocked(dir){if(o.char!=='miya')return false;const y=robots.find(r=>r&&r!==o&&r.vrm&&r.space===sp);if(!y)return false;const d=new V3().subVectors(y.g.position,g.position);d.y=0;return d.length()<.62&&d.dot(dir)>0;},
+    blocked(dir){return false;const y=robots.find(r=>r&&r!==o&&r.vrm&&r.space===sp);if(!y)return false;const d=new V3().subVectors(y.g.position,g.position);d.y=0;return d.length()<.62&&d.dot(dir)>0;},
     serve(){if(atHome()&&!walking&&sitK===0){serveT=1.8;}smile();},
     talk(sec){talkT=Math.max(talkT,sec);},
     express(k){if(k==='smile'){smile();return;}exprKind=k;exprAge=0;exprDur=k==='wink'?1.6:k==='worry'?3.4:k==='yawn'?2.6:k==='surprise'?1.8:k==='pout'?20:k==='kiss'?3.6:2.8;if(k==='surprise')lookViewerT=0;if(k==='worry'||k==='wink')lookViewerT=Math.max(lookViewerT,k==='worry'?3:1.6);},
     setPose(p){if(p==='table'||p==='lap'||p==='lean')sitPose=p;else standPose=p;poseT=rand(12,26);},
-    resetHome(){o._visiting=false;queue=[];act=null;walking=0;sitK=0;lapK=0;kissK=0;o._kiss=null;workKind=null;workK=0;inBack=false;pourLiq=null;stream.visible=false;g.position.copy(P.home);bodyYaw=P.yaw;g.rotation.y=bodyYaw;nextWander=rand(18,30);nextVisit=rand(60,90);nextBack=rand(90,160);},
+    resetHome(){o._visiting=false;o._touring=false;queue=[];act=null;walking=0;sitK=0;lapK=0;kissK=0;o._kiss=null;workKind=null;workK=0;inBack=false;pourLiq=null;stream.visible=false;g.position.copy(P.home);bodyYaw=P.yaw;g.rotation.y=bodyYaw;nextWander=rand(18,30);nextVisit=rand(60,90);nextBack=rand(90,160);},
     wander(){const off=(Math.random()<.5?-1:1)*rand(Math.min(1.1,P.range*.5),P.range),pt=P.home.clone().addScaledVector(P.axis,off),by=P.yaw+Math.PI;
       plan([{t:'walk',to:pt},{t:'turn',yaw:by},{t:'pose',p:pick(['down','front'])},{t:'wait',d:rand(1.5,3),look:pt.clone().add(new V3(Math.sin(by),0,Math.cos(by)).multiplyScalar(1.2)).setY(P.home.y+1.6+Math.random()*.6)},
         {t:'turn',yaw:P.yaw},{t:'wait',d:rand(1,2.5)},{t:'walk',to:P.home.clone()},{t:'turn',yaw:P.yaw}]);},
@@ -2568,11 +2574,24 @@ function setupVRM(vrm,base,sp,charId){charId=charId||'yui';
     returnHome(){const back=P.door.slice(0,-1).reverse();plan([...back.map(v=>({t:'walk',to:v.clone()})),{t:'walk',to:P.home.clone()},{t:'turn',yaw:P.yaw}]);nextWander=rand(8,14);},
     roam(){ // Miya: walk to a free spot along the counter, linger, sometimes tidy up there
       const ax=P.axis.x?'x':'z',yu=robots.find(r=>r&&r!==o&&r.vrm&&r.space===sp),yc=yu?yu.g.position[ax]:1e9;let c=null;
-      for(let k=0;k<10;k++){const v=rand(P.lane[0],P.lane[1]);if(Math.abs(v-yc)>1.1&&Math.abs(v-g.position[ax])>.5){c=v;break;}}
+      for(let k=0;k<10;k++){const v=rand(P.lane[0],P.lane[1]);if(Math.abs(v-yc)>.45&&Math.abs(v-g.position[ax])>.5){c=v;break;}}
       if(c==null){plan([{t:'wait',d:rand(2,4)}]);return;}
       const to=P.home.clone();to[ax]=c;const r2=Math.random(),by=P.yaw+Math.PI;
       const stay=r2<.45?[{t:'work',kind:pick(['wipe','polish']),d:rand(5,9)}]:r2<.75?[{t:'turn',yaw:by},{t:'pose',p:pick(['down','front'])},{t:'wait',d:rand(2,4),look:to.clone().add(new V3(Math.sin(by),0,Math.cos(by)).multiplyScalar(1.2)).setY(P.home.y+1.7)},{t:'turn',yaw:P.yaw}]:[{t:'wait',d:rand(3,7)}];
       plan([{t:'walk',to},{t:'turn',yaw:P.yaw},...stay]);},
+    tour(){const mx=sp==='cafe'?RX:RXB,mz=sp==='cafe'?RZ:RZB,Y0=P.home.y,steps=[];let list=TOUR[sp].slice();if(Math.random()<.5&&sp==='bar')list=list.reverse();
+      for(const it of list){if(Array.isArray(it)){steps.push({t:'walk',to:new V3(mx(it[0]),Y0,mz(it[1]))});continue;}
+        steps.push({t:'walk',to:new V3(mx(it.x),Y0,mz(it.z))},{t:'turn',yaw:it.face},{t:'work',kind:it.kind,d:rand(3.5,6)});}
+      steps.push({t:'walk',to:P.home.clone()},{t:'turn',yaw:P.yaw});o._touring=true;steps.push({t:'do',f:()=>{o._touring=false;}});plan(steps);},
+    patrol(){const ax=P.axis.x?'x':'z',L=P.lane,cur=g.position[ax],dir=(Math.abs(cur-L[0])>Math.abs(cur-L[1]))?-1:1,n=3+Math.floor(Math.random()*2),steps=[];
+      const far=dir>0?L[1]:L[0],span=far-cur;
+      for(let k=1;k<=n;k++){const c=clamp(cur+span*(k/n)+rand(-.15,.15),Math.min(L[0],L[1]),Math.max(L[0],L[1]));const to=P.home.clone();to[ax]=c;steps.push({t:'walk',to});
+        const r=Math.random();
+        if(r<.45)steps.push({t:'turn',yaw:P.yaw},{t:'work',kind:'wipe',d:rand(3,5)});
+        else if(r<.8)steps.push({t:'turn',yaw:P.yaw+Math.PI},{t:'work',kind:'wall',d:rand(3,5)},{t:'turn',yaw:P.yaw});
+        else steps.push({t:'turn',yaw:P.yaw},{t:'work',kind:'polish',d:rand(3,4)});}
+      if(o.char==='yui')steps.push({t:'walk',to:P.home.clone()},{t:'turn',yaw:P.yaw});else steps.push({t:'turn',yaw:P.yaw});
+      plan(steps);},
     work(w){w=w||pick(P.work);plan([{t:'walk',to:w.at.clone()},{t:'turn',yaw:P.yaw},{t:'work',kind:w.kind,d:rand(7,13)},{t:'wait',d:rand(.8,1.6)},{t:'walk',to:P.home.clone()},{t:'turn',yaw:P.yaw}]);},
     backroom(){const back=P.back.slice().reverse();
       plan([...P.back.map(v=>({t:'walk',to:v.clone()})),{t:'turn',yaw:P.backYaw},{t:'flag',v:true},{t:'work',kind:'wipe',d:rand(8,16)},{t:'flag',v:false},...back.slice(1).map(v=>({t:'walk',to:v.clone()})),{t:'walk',to:P.home.clone()},{t:'turn',yaw:P.yaw}]);},
@@ -2591,7 +2610,8 @@ function setupVRM(vrm,base,sp,charId){charId=charId||'yui';
           if(nextVisit<=0&&playerHere&&!robots.some(r=>r&&r!==o&&r.space===sp&&r._visiting)){o.visit();const st=loveStageOf(o.char);nextVisit=[0,rand(300,420),rand(200,300),rand(150,240),rand(110,180),rand(80,140)][st];nextWander=rand(25,40);}
           else if(nextVisit<=0)nextVisit=rand(15,25);
           else if(nextBack<=0){o.backroom();nextBack=rand(120,220);nextWander=rand(25,40);}
-          else if(nextWander<=0){if(o.char==='miya')o.roam();else if(Math.random()<.55)o.wander();else o.work();nextWander=o.char==='miya'?rand(3,8):rand(6,13);}}
+          else if(nextWander<=0){const r=Math.random(),otherTour=robots.some(q=>q&&q!==o&&q.space===sp&&q._touring),canTour=!otherTour&&!(seatIdx!==P.playerSeat&&false);
+            if(o.char==='miya'){if(r<.28&&canTour)o.tour();else if(r<.55)o.patrol();else o.roam();}else if(r<.3)o.wander();else if(r<.5)o.patrol();else if(r<.68&&canTour)o.tour();else o.work();nextWander=o.char==='miya'?rand(3,8):rand(6,13);}}
         else plan([{t:'walk',to:P.home.clone()},{t:'turn',yaw:P.yaw}]);
       }
       if(!act&&queue.length){act=queue.shift();act.e=0;}
@@ -2657,7 +2677,7 @@ function setupVRM(vrm,base,sp,charId){charId=charId||'yui';
       else if(lookViewerT>0)target=viewer;
       else if(lookAtPt)target=lookAtPt;
       else if(walking>=1){target=tmp.copy(g.position).addScaledVector(fwd,3).setY(g.position.y+1.35);if(gazeMode==='viewer'&&gazeT>2&&!inBack)target=viewer;}
-      else if(workKind){const wp=tmp.copy(g.position).addScaledVector(fwd,workKind==='polish'?.32:workKind==='reach'?.6:.45).setY(g.position.y+(workKind==='polish'?1.15:workKind==='shake'?1.35:workKind==='machine'?1.12:workKind==='reach'?1.75:(workKind==='milk'||workKind==='kettle'||workKind==='pour')?1.04:.97));
+      else if(workKind){const wp=tmp.copy(g.position).addScaledVector(fwd,workKind==='polish'?.32:workKind==='reach'?.6:.45).setY(g.position.y+(workKind==='wipelow'?.74:workKind==='wall'?1.35:workKind==='polish'?1.15:workKind==='shake'?1.35:workKind==='machine'?1.12:workKind==='reach'?1.75:(workKind==='milk'||workKind==='kettle'||workKind==='pour')?1.04:.97));
         target=(gazeMode==='viewer'&&gazeT<2.5&&!inBack)?viewer:wp;}
       else target=gazeMode==='viewer'?viewer:gazePt;
       eyePt.lerp(target,1-Math.exp(-dt*(sitK>.5?7:16)));headPt.lerp(target,1-Math.exp(-dt*(sitK>.5?.95:2.6)));eyeT.position.copy(eyePt);
@@ -2676,7 +2696,7 @@ function setupVRM(vrm,base,sp,charId){charId=charId||'yui';
       workK+=((workKind?1:0)-workK)*Math.min(1,dt*3);
       leanK+=((sitK>.5&&sitPose==='lean'?1:0)-leanK)*Math.min(1,dt*1.8);
       const poseDef=sitK>.5?ARM_POSES[sitPose==='lap'?'lap':'counter']:ARM_POSES[standPose];
-      const _sd=0;const wantLean=(walkW>.5?-.03:poseDef.lean)-(workKind==='wipe'?.12:workKind==='machine'?.05:0)*workK-(sitK>.5&&sitPose==='table'?.08:0)-leanK*.3-lapK*.1-kissK*.16;
+      const _sd=0;const wantLean=(walkW>.5?-.03:poseDef.lean)-(workKind==='wipelow'?.32:workKind==='wipe'?.12:workKind==='machine'?.05:0)*workK-(sitK>.5&&sitPose==='table'?.08:0)-leanK*.3-lapK*.1-kissK*.16;
       curLean+=(wantLean-curLean)*Math.min(1,dt*3);
       g.updateMatrixWorld(true);inv.copy(g.matrixWorld).invert();toLocal(headPt,tmp);
       const hy=1.52-.12*sitK-.14*leanK;let yaw=clamp(Math.atan2(tmp.x,tmp.z),-1.3,1.3),pit=clamp(Math.atan2(tmp.y-hy,Math.hypot(tmp.x,tmp.z)),-.5,.45);
@@ -2701,6 +2721,8 @@ function setupVRM(vrm,base,sp,charId){charId=charId||'yui';
       if(walkW>.3&&sitK===0){const k=walkW;dL.lerp(new V3(.18,.81,.03-sw*.13),k);dR.lerp(new V3(-.18,.81,.03+sw*.13),k);poleKind='side';}
       if(workK>.01){const k=workK,wt=t*2.2;let wl,wr;
         if(workKind==='wipe'){wl=[.13+Math.cos(wt)*.08,.975,.3+Math.sin(wt)*.06];wr=[-.16,.985,.27];}
+        else if(workKind==='wipelow'){wl=[.12+Math.cos(wt)*.09,.78,.4+Math.sin(wt)*.06];wr=[-.17,.82,.22];}
+        else if(workKind==='wall'){const a2=t*2.6;wl=[.06+Math.cos(a2)*.09,1.32+Math.sin(a2)*.1,.36];wr=[-.19,.83,.04];}
         else if(workKind==='polish'){wr=[-.05,1.1,.24];wl=[.03+Math.cos(wt*1.5)*.03,1.13+Math.sin(wt*1.5)*.03,.25];}
         else if(workKind==='machine'){const ph=(t*.6)%1,rc=ph<.6?Math.sin(ph/.6*Math.PI):0;wr=[-.06,1.18+rc*.03,.3+rc*.05];wl=[.16,.985,.27];}
         else if(workKind==='milk'){const w=Math.sin(t*3.2)*.012;wl=[.05,1.03,.3];wr=[-.03+w,1.13,.3];}
@@ -2729,7 +2751,7 @@ function setupVRM(vrm,base,sp,charId){charId=charId||'yui';
       if(rH)rH.rotation.set(-leanK*.9,relax?-.2:0,relax?-.25:(poseDef===ARM_POSES.front||poseDef===ARM_POSES.lap?.35:-.12));
       const curl=(poseDef===ARM_POSES.front||poseDef===ARM_POSES.back||poseDef===ARM_POSES.lap)?.55:workKind?.6:.2;
       for(const f of fingers){if(f.th)f.n.rotation.set(0,f.s*-.25,0);else f.n.rotation.z=f.s*curl;}
-      cloth.visible=(workKind==='wipe'||workKind==='polish')&&workK>.3;hGlass.visible=workKind==='polish'&&workK>.3;hShaker.visible=workKind==='shake'&&workK>.3;
+      cloth.visible=(workKind==='wipe'||workKind==='wipelow'||workKind==='polish'||workKind==='wall')&&workK>.3;hGlass.visible=workKind==='polish'&&workK>.3;hShaker.visible=workKind==='shake'&&workK>.3;
       const wkOn=workK>.3,prog=clamp((o._we||0)/(o._wd||1),0,1);
       hPitcher.visible=wkOn&&workKind==='milk';hKettle.visible=wkOn&&workKind==='kettle';hBottle.visible=wkOn&&(workKind==='pour'||(workKind==='reach'&&prog>.5));
       lCup.visible=wkOn&&workKind==='milk';lGlass.visible=wkOn&&workKind==='pour';
