@@ -53,6 +53,11 @@ button.vr:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
 .namebox{display:grid;gap:6px}.namebox label{font-size:12.5px;color:var(--rose);letter-spacing:.08em}
 #yourname{font:inherit;font-size:15px;color:var(--text);background:rgba(255,255,255,.06);border:1px solid var(--line);padding:9px 12px;width:min(220px,100%);box-sizing:border-box}
 #yourname:focus-visible{outline:2px solid var(--amber)}
+button.wsb{font:inherit;font-size:13px;cursor:pointer;border:1px solid #39ff9e;padding:8px 14px;color:var(--text);background:rgba(57,255,158,.1)}
+button.wsb:hover{background:rgba(57,255,158,.22)}button.wsb:focus-visible,.wslink:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.wsurl{font-family:var(--mono);color:var(--text);word-break:break-all}.wscode{font-family:var(--mono);font-size:16px;color:var(--cyan);letter-spacing:.12em}
+.wslink{all:unset;cursor:pointer;font-size:12px;color:var(--dim);text-decoration:underline;margin-left:8px}
+#arbtn{background:#39ff9e}
 #lovereset{all:unset;cursor:pointer;font-size:12px;color:var(--dim);text-decoration:underline}
 #lovereset:focus-visible{outline:2px solid var(--amber)}
 #home{position:fixed;z-index:12;top:calc(14px + env(safe-area-inset-top,0px));left:max(16px,env(safe-area-inset-left,0px));
@@ -82,7 +87,7 @@ button.vr:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
 <div id="tip" hidden>ドラッグで見回す · 光るパネルや床の輪をクリック</div>
 <button id="dbgToggle" type="button" hidden>テスト</button>
 <div id="debug" hidden>
-  <div style="font-size:11px;opacity:.6">版 2026-11-28d</div>
+  <div style="font-size:11px;opacity:.6">版 2026-11-28e</div>
   <div id="dbgStat"></div>
   <div class="grp"><button type="button" data-dbg="target" class="wide" id="dbgTarget">対象：ユイ（押すと切り替え）</button></div>
   <h3>頬の赤み</h3>
@@ -130,7 +135,13 @@ button.vr:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
       <label for="yourname">ユイに呼んでほしい名前</label>
       <div class="row"><input id="yourname" type="text" maxlength="10" placeholder="例：ハル" autocomplete="off"><span class="status" id="lovestat"></span><button id="lovereset" type="button">関係をリセット</button></div>
     </div>
+    <div class="namebox" id="wsbox">
+      <label>作業スペース：パソコンの画面をお店に持ち込む</label>
+      <div class="row"><button id="wsstart" type="button" class="wsb">パソコンの画面をつなぐ</button><span class="status" id="wsstat"></span></div>
+      <div class="hint" id="wshelp" hidden>パソコンのブラウザで <b id="wsurl" class="wsurl"></b> を開き、接続コード <b id="wscode" class="wscode"></b> を入力してください。つながると、お店の中で「作業モード」を押した席の前に画面が出ます。<button id="wsnew" type="button" class="wslink">コードを作り直す</button></div>
+    </div>
     <div class="row">
+      <button id="arbtn" class="vr" type="button" disabled hidden>作業モードでVRに入る（手元が見える）</button>
       <button id="vrbtn" class="vr" type="button" disabled>VRで入る（カフェから）</button>
       <span class="status" id="vrstatus">VR対応を確認中…</span>
     </div>
@@ -141,6 +152,7 @@ button.vr:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
 <script src="https://cdn.jsdelivr.net/npm/three@0.137.5/build/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.137.5/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@pixiv/three-vrm@0.6.11/lib/three-vrm.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <script>
 (function(){
 const $=id=>document.getElementById(id);
@@ -155,7 +167,7 @@ const hex=c=>'#'+c.toString(16).padStart(6,'0');
 
 /* ---------- renderer / scene ---------- */
 const canvas=$('c');
-const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.setSize(innerWidth,innerHeight);
 renderer.xr.enabled=true;
@@ -1726,12 +1738,14 @@ const DRINKS=[
   {id:'whisky',label:'ウイスキー',sub:'ロック',line:'「{shy}本物の樽で十二年眠っていた一杯です。ゆっくり溶かしてどうぞ」'}
 ];
 let musicOn=true,breathOn=false;
+const WORK={on:false,hidePanel:false,t:0,nextServe:0,nextRest:0};
 const BTNS=[
   {label:()=>usualDrink()?'いつもの':'おまかせ',sub:()=>{const u=usualDrink();return u?DRINKS.find(d=>d.id===u).label:'今日の一杯';},accent:'#ff7ab6',fn:()=>{const u=usualDrink();order(u?DRINKS.find(d=>d.id===u):pick(DRINKS));}},
   ...DRINKS.map(d=>({label:d.label,sub:d.sub||'注文',accent:'#ffc27a',fn:()=>order(d)})),
   {label:()=>breathOn?'深呼吸をやめる':'深呼吸する',sub:'1分',accent:'#3ef2ff',fn:()=>toggleBreath()},
   {label:()=>OUTLINE.on?'輪郭線を消す':'輪郭線を付ける',sub:()=>OUTLINE.on?'ON':'OFF',accent:'#3ef2ff',fn:()=>toggleOutline()},
   {label:()=>musicOn?'音楽を止める':'音楽を流す',sub:()=>musicOn?'ON':'OFF',accent:'#3ef2ff',fn:()=>toggleMusic()},
+  {label:()=>WORK.on?'作業モードを終える':'作業モード',sub:()=>WORK.on?'画面 ON':'PCの画面',accent:'#39ff9e',fn:()=>toggleWork()},
   {label:'席を移る',sub:()=>SPACES[space].seats[nextSeatIdx()].name,accent:'#ff7ab6',fn:()=>goSeat(nextSeatIdx())},
   {label:()=>SPACES[SPACES[space].other].name+'へ',sub:'移動',accent:'#ff7ab6',fn:()=>{const o=SPACES[space].other;goSpace(o);}}
 ];
@@ -2136,16 +2150,16 @@ function thunder(){{const pc=presentChars();setFocus(pc.length?pick(pc):'yui');}
     caption(staffName()+'「'+line+'」',6);addMemory('thunder','雷が鳴った夜');if(lv>=3)addLove(1);},1300);}
 function updateRomance3(dt){
   updateEnvelope();
-  {const evt=robots.some(r=>r.inEvent&&r.inEvent()),s2=SPACES[space].seats[seatIdx];const want=!evt&&!reader.visible&&!(s2&&s2.entry);if(panel.visible!==want){panel.visible=want;if(!want)setHover(null);}}
+  {const evt=robots.some(r=>r.inEvent&&r.inEvent()),s2=SPACES[space].seats[seatIdx];const want=!evt&&!reader.visible&&!(s2&&s2.entry)&&!(WORK.on&&WORK.hidePanel);if(panel.visible!==want){panel.visible=want;if(!want)setHover(null);}}
   if(thunderFlash>0){thunderFlash=Math.max(0,thunderFlash-dt*2.2);}
   hemi.intensity=hemiBase+thunderFlash*thunderFlash*(space==='cafe'?1.1:1.6);
   if(!active)return;sessionT+=dt;
-  nextThunder-=dt;if(nextThunder<=0&&!choiceQ&&!reader.visible){nextThunder=rand(420,780);thunder();}
-  if(!invitedThisVisit&&space==='cafe'&&seatIdx===SPACES.cafe.spawn&&loveStageOf('yui')>=3&&sessionT>200&&!choiceQ&&!reader.visible&&Math.random()<dt/60){invitedThisVisit=true;setFocus('yui');showChoice(INVITE_Q);}
+  nextThunder-=dt;if(nextThunder<=0&&!WORK.on&&!choiceQ&&!reader.visible){nextThunder=rand(420,780);thunder();}
+  if(!WORK.on&&!invitedThisVisit&&space==='cafe'&&seatIdx===SPACES.cafe.spawn&&loveStageOf('yui')>=3&&sessionT>200&&!choiceQ&&!reader.visible&&Math.random()<dt/60){invitedThisVisit=true;setFocus('yui');showChoice(INVITE_Q);}
 }
 function caption(text,secs){text=text.replace(/\{name\}/g,callName());let expr=null;const mt=text.match(/\{(wink|shy|pout|worry|smile|surprise|yawn|kiss)\}/);if(mt){expr=mt[1];text=text.replace(mt[0],'');}captionText=text;
   {for(const id of CHAR_IDS){const nm=CHARS[id].staff[space];if(text.indexOf(nm)===0){const st=staffOf(id);if(st&&st.talk)st.talk(Math.min(6,(text.length-nm.length)*.09));if(st&&st.express&&expr)st.express(expr);break;}}}
-  header.redraw();const el=$('caption');el.textContent=text;el.classList.add('show');capT=secs||6;}
+  header.redraw();if(window.__wsCap)window.__wsCap(text);const el=$('caption');el.textContent=text;el.classList.add('show');capT=secs||6;}
 function pickServer(){const y=staffOf('yui'),m=staffOf('miya');const busy=r=>!r||(r.inEvent&&r.inEvent())||(r.isSeated&&r.isSeated());
   if(!busy(y))return 'yui';if(m&&m.vrm&&!busy(m))return 'miya';return 'yui';}
 function order(d){
@@ -2181,7 +2195,7 @@ function applySeat(){
   hemiBase=hemi.intensity;
   const [rx,ry,rz,sx,hole]=sp.rain;rain.position.set(rx,ry,rz);rain.scale.x=sx;
   if(hole!==rainHole){rainHole=hole;for(let i=0;i<RAIN;i++)holeFix(i);rainGeo.attributes.position.needsUpdate=true;}
-  placePanel();placeDrink();placeBreath();rebuildRings();redrawUI();audio.setSpace(space);panel.visible=!s.entry;
+  placePanel();placeDrink();placeBreath();rebuildRings();try{wsLayout();}catch(e){}redrawUI();audio.setSpace(space);panel.visible=!s.entry;
 }
 function goSeat(i){withFade(()=>{seatIdx=i;applySeat();});}
 function goSpace(sp,i){withFade(()=>{const changed=sp!==space;if(changed)for(const r of robots)if(r.resetHome)r.resetHome();space=sp;const door=i==null;seatIdx=door?entryIdx(sp):i;if(drinkObj&&changed){scene.remove(drinkObj);drinkObj=null;}applySeat();if(door)beginArrival(sp);else if(changed)setTimeout(()=>caption(loveGreet(sp)),500);});}
@@ -2213,7 +2227,7 @@ const controllers=[0,1].map(i=>{
   const dot=glowSprite(0xffc27a,.04);dot.visible=false;scene.add(dot);
   const body=new THREE.Mesh(new THREE.BoxGeometry(.035,.03,.11),new THREE.MeshStandardMaterial({color:0x2a2834,metalness:.5,roughness:.4}));body.position.z=.03;c.add(body);
   c.userData={line,dot,hover:null};
-  c.addEventListener('selectstart',()=>{const b=c.userData.hover;if(b&&b.onSelect){audio.chime();b.onSelect();}});
+  c.addEventListener('selectstart',()=>{if(WORK.calib&&!c.userData.hover){wsCalibAt(c);return;}const b=c.userData.hover;if(b&&b.onSelect){audio.chime();b.onSelect();}});
   return c;
 });
 function updateVRPointers(){
@@ -2235,6 +2249,7 @@ async function setupVR(){
   try{const ok=await navigator.xr.isSessionSupported('immersive-vr');
     if(ok){btn.disabled=false;st.textContent='VRヘッドセットを利用できます。';}
     else st.textContent='VRヘッドセットが見つかりません。PC・スマホで楽しめます。';
+    if(await navigator.xr.isSessionSupported('immersive-ar').catch(()=>false)){const a=$('arbtn');a.hidden=false;a.disabled=false;}
   }catch(e){st.textContent='この表示環境ではVRが許可されていません。HTMLファイルを自分のサーバーで開くとVRで入れます。';}
 }
 $('vrbtn').addEventListener('click',async()=>{
@@ -2244,9 +2259,125 @@ $('vrbtn').addEventListener('click',async()=>{
     renderer.xr.setReferenceSpaceType('local-floor');await renderer.xr.setSession(s);
     camera.position.set(0,0,0);camera.rotation.set(0,0,0);
     enter('cafe');
-    s.addEventListener('end',()=>{camera.position.set(0,SPACES[space].seats[seatIdx].eye||1.32,0);for(const c of controllers)c.userData.dot.visible=false;});
+    xrMode='vr';wsHole.visible=false;wsLayout();
+    s.addEventListener('end',()=>{camera.position.set(0,SPACES[space].seats[seatIdx].eye||1.32,0);for(const c of controllers)c.userData.dot.visible=false;wsLayout();});
   }catch(e){$('vrstatus').textContent='VRを開始できませんでした（'+e.message+'）';}
 });
+$('arbtn').addEventListener('click',async()=>{
+  audio.init();
+  try{
+    const s=await navigator.xr.requestSession('immersive-ar',{optionalFeatures:['local-floor','bounded-floor','hand-tracking']});
+    renderer.xr.setReferenceSpaceType('local-floor');await renderer.xr.setSession(s);xrMode='ar';
+    camera.position.set(0,0,0);camera.rotation.set(0,0,0);
+    enter('cafe');if(!WORK.on)toggleWork();wsHole.visible=true;wsLayout();
+    s.addEventListener('end',()=>{xrMode='vr';wsHole.visible=false;WORK.calib=false;camera.position.set(0,SPACES[space].seats[seatIdx].eye||1.32,0);for(const c of controllers)c.userData.dot.visible=false;wsLayout();});
+  }catch(e){$('vrstatus').textContent='作業モードで開始できませんでした（'+e.message+'）';}
+});
+
+/* ---------- workspace: your PC screen in the shop (WebRTC via PeerJS) + passthrough window over your real desk ---------- */
+const WS_KEY='amayadori.ws';
+const WS_SAVE=(()=>{try{return JSON.parse(localStorage.getItem(WS_KEY))||{};}catch(e){return {};}})();
+const wsSaveNow=()=>{try{localStorage.setItem(WS_KEY,JSON.stringify(WS_SAVE));}catch(e){}};
+Object.assign(WORK,{code:null,peer:null,call:null,conn:null,live:false,status:'',calib:false});
+if(!/^\d{6}$/.test(WS_SAVE.code||'')){WS_SAVE.code=String(Math.floor(100000+Math.random()*900000));wsSaveNow();}
+WORK.code=WS_SAVE.code;
+const WS_URL=new URL('share.html',location.href).href;
+const wsVideo=document.createElement('video');wsVideo.muted=true;wsVideo.playsInline=true;wsVideo.autoplay=true;
+wsVideo.style.cssText='position:fixed;left:0;top:0;width:2px;height:2px;opacity:0;pointer-events:none';document.body.appendChild(wsVideo);
+const wsVTex=new THREE.VideoTexture(wsVideo);wsVTex.minFilter=THREE.LinearFilter;wsVTex.magFilter=THREE.LinearFilter;wsVTex.generateMipmaps=false;wsVTex.anisotropy=renderer.capabilities.getMaxAnisotropy();
+const wsPh=document.createElement('canvas');wsPh.width=1280;wsPh.height=720;const wsPhTex=new THREE.CanvasTexture(wsPh);
+function wsDrawPh(){const g=wsPh.getContext('2d'),W=1280,H=720;g.fillStyle='#0d0a16';g.fillRect(0,0,W,H);g.strokeStyle='rgba(255,194,122,.5)';g.lineWidth=4;g.strokeRect(2,2,W-4,H-4);
+  g.textAlign='center';g.textBaseline='middle';g.fillStyle='#ffc27a';g.font=`700 52px ${JPFONT}`;g.fillText('パソコンの画面を待っています',W/2,170);
+  g.fillStyle='#98a0bd';g.font=`30px ${JPFONT}`;g.fillText('パソコンのブラウザで次のページを開いてください',W/2,280);
+  g.fillStyle='#eef3ff';g.font=`34px "Share Tech Mono",monospace`;let u=WS_URL;while(g.measureText(u).width>W-120&&u.length>10)u='…'+u.slice(2);g.fillText(u,W/2,340);
+  g.fillStyle='#98a0bd';g.font=`30px ${JPFONT}`;g.fillText('接続コード',W/2,440);
+  g.fillStyle='#3ef2ff';g.font=`700 110px "Share Tech Mono",monospace`;g.fillText(WORK.code.slice(0,3)+' '+WORK.code.slice(3),W/2,530);
+  g.fillStyle='#ff7ab6';g.font=`28px ${JPFONT}`;g.fillText(WORK.status||'',W/2,640);wsPhTex.needsUpdate=true;}
+const wsGroup=new THREE.Group();wsGroup.visible=false;rig.add(wsGroup);
+const wsScreenMat=new THREE.MeshBasicMaterial({map:wsPhTex,toneMapped:false,fog:false,depthTest:false,depthWrite:false,transparent:true}); // transparent list so it draws after the shop's glass
+const wsScreen=new THREE.Mesh(new THREE.PlaneGeometry(1,1),wsScreenMat);wsScreen.renderOrder=21;wsGroup.add(wsScreen);
+const wsBezel=new THREE.Mesh(new THREE.PlaneGeometry(1,1),new THREE.MeshBasicMaterial({color:0x07050c,fog:false,depthTest:false,depthWrite:false,transparent:true}));wsBezel.renderOrder=20;wsBezel.position.z=-.002;wsGroup.add(wsBezel);
+const wsBar=new THREE.Group();wsGroup.add(wsBar);
+let wsCapText='';
+const wsCap=makeButton(.8,.075,(g,W,H)=>{g.clearRect(0,0,W,H);if(!wsCapText)return;g.fillStyle='rgba(12,8,22,.88)';g.fillRect(0,0,W,H);g.fillStyle='#ffc27a';g.fillRect(0,0,6,H);
+  g.fillStyle='#eef3ff';g.font=`${H*.3}px ${JPFONT}`;g.textBaseline='middle';g.textAlign='left';let line='',lines=[];for(const ch of wsCapText){if(g.measureText(line+ch).width>W-40){lines.push(line);line=ch;}else line+=ch;}lines.push(line);lines=lines.slice(0,2);
+  lines.forEach((l,i)=>g.fillText(l,22,H*(lines.length===1?.5:.3+i*.4)));},null);
+wsCap.mesh.visible=false;wsGroup.add(wsCap.mesh);
+window.__wsCap=t=>{wsCapText=t;wsCap.redraw();};
+function wsSmallDraw(label,accent){return (g,W,H,hov)=>{g.fillStyle=hov?accent:'rgba(20,14,32,.9)';g.fillRect(0,0,W,H);g.strokeStyle=accent;g.lineWidth=3;g.strokeRect(1.5,1.5,W-3,H-3);
+  g.fillStyle=hov?'#0b0712':'#eef3ff';g.font=`700 ${H*.42}px ${JPFONT}`;g.textAlign='center';g.textBaseline='middle';g.fillText(typeof label==='function'?label():label,W/2,H/2);};}
+const wsAdj=(k,v,lo,hi)=>{WS_SAVE[k]=clamp(Math.round(((WS_SAVE[k]??WS_DEF()[k])+v)*100)/100,lo,hi);wsSaveNow();wsLayout();};
+const WS_BTNS=[
+  ['近く','#3ef2ff',()=>wsAdj('d',-.05,.35,2)],['遠く','#3ef2ff',()=>wsAdj('d',.05,.35,2)],
+  ['大きく','#3ef2ff',()=>wsAdj('w',.08,.4,2.4)],['小さく','#3ef2ff',()=>wsAdj('w',-.08,.4,2.4)],
+  ['上へ','#3ef2ff',()=>wsAdj('y',.04,-.6,.8)],['下へ','#3ef2ff',()=>wsAdj('y',-.04,-.6,.8)],
+  [()=>WORK.hidePanel?'メニュー':'メニューを隠す','#ff7ab6',()=>{WORK.hidePanel=!WORK.hidePanel;wsBtns.forEach(b=>b.redraw());}],
+  ['手元の窓','#39ff9e',()=>wsCalibStart(),'ar']
+];
+const wsBtns=WS_BTNS.map(([l,a,f,ar])=>{const b=makeButton(.105,.042,wsSmallDraw(l,a),f);b.ar=!!ar;wsBar.add(b.mesh);return b;});
+// passthrough window: a box that punches the virtual world open (alpha 0) so the real keyboard/hands show through (immersive-ar only)
+const wsHoleMat=new THREE.ShaderMaterial({vertexShader:'void main(){gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',fragmentShader:'void main(){gl_FragColor=vec4(0.,0.,0.,0.);}',blending:THREE.NoBlending,side:THREE.DoubleSide,depthWrite:true,fog:false});
+const wsHole=new THREE.Mesh(new THREE.BoxGeometry(1,1,1),wsHoleMat);wsHole.renderOrder=-100;wsHole.visible=false;rig.add(wsHole);
+let xrMode='vr';
+function WS_DEF(){return {d:.8,w:.95,y:-.14,hx:0,hy:.86,hz:-.36,hyaw:0,hw:.66,hd:.38};}
+function wsLayout(){const D=Object.assign(WS_DEF(),WS_SAVE);const xr=renderer.xr.isPresenting,eye=xr?1.2:(SPACES[space].seats[seatIdx].eye||1.32);
+  const vw=wsVideo.videoWidth,vh=wsVideo.videoHeight,asp=WORK.live&&vw&&vh?vh/vw:9/16,w=D.w,h=w*asp;
+  wsGroup.position.set(0,eye+D.y,-D.d);wsGroup.rotation.set(-Math.atan2(D.y,D.d)*.6,0,0);
+  wsScreen.scale.set(w,h,1);wsBezel.scale.set(w+.03,h+.03,1);
+  const vis=wsBtns.filter(b=>!b.ar||xrMode==='ar');const gap=.112;vis.forEach((b,i)=>{b.mesh.position.set((i-(vis.length-1)/2)*gap,-h/2-.04,0);});wsBtns.forEach(b=>b.mesh.visible=vis.includes(b));
+  wsCap.mesh.position.set(0,h/2+.06,0);
+  wsHole.position.set(D.hx,D.hy,D.hz);wsHole.rotation.set(0,D.hyaw,0);wsHole.scale.set(D.hw,.32,D.hd);}
+function wsRefresh(){wsScreenMat.map=WORK.live?wsVTex:wsPhTex;wsScreenMat.needsUpdate=true;if(!WORK.live)wsDrawPh();wsLayout();wsUpdateMenu();}
+function wsSetStatus(t){WORK.status=t;if(!WORK.live)wsDrawPh();wsUpdateMenu();}
+function wsUpdateMenu(){const st=$('wsstat');if(st)st.textContent=WORK.status;const h=$('wshelp');if(h)h.hidden=!WORK.peer;}
+wsVideo.addEventListener('resize',wsLayout);wsVideo.addEventListener('loadedmetadata',wsLayout);
+const wsBoost=pc=>{try{for(const s of pc.getSenders()){if(!s.track||s.track.kind!=='video')continue;const p=s.getParameters();p.encodings=p.encodings&&p.encodings.length?p.encodings:[{}];p.encodings[0].maxBitrate=8e6;p.degradationPreference='maintain-resolution';s.setParameters(p).catch(()=>{});}}catch(e){}};
+let wsRetry=null;
+function wsStart(){
+  if(WORK.peer&&!WORK.peer.destroyed)return;clearTimeout(wsRetry);
+  if(!window.Peer){wsSetStatus('接続の仕組みを読み込めませんでした。ページを再読み込みしてください。');return;}
+  WS_SAVE.on=true;wsSaveNow();wsSetStatus('準備中…');
+  const p=new Peer('amayadori-ws-'+WORK.code,{debug:0});WORK.peer=p;wsUpdateMenu();
+  p.on('open',()=>wsSetStatus(WORK.live?'接続中：パソコンの画面を受信しています':'待機中：パソコンからの接続を待っています'));
+  p.on('connection',conn=>{WORK.conn=conn;conn.on('open',()=>conn.send({hi:'lounge'}));conn.on('data',d=>{if(d&&d.bye){WORK.live=false;wsRefresh();wsSetStatus('待機中：パソコン側で共有が止まりました');}});});
+  p.on('call',call=>{if(WORK.call&&WORK.call!==call)try{WORK.call.close();}catch(e){}WORK.call=call;call.answer();
+    call.on('stream',s=>{wsVideo.srcObject=s;wsVideo.play().catch(()=>{});WORK.live=true;wsRefresh();wsSetStatus('接続中：パソコンの画面を受信しています');
+      const tr=s.getVideoTracks()[0];if(tr)tr.addEventListener('ended',()=>{if(WORK.call===call){WORK.live=false;wsRefresh();wsSetStatus('待機中：パソコンからの接続を待っています');}});
+      if(!WORK.on&&active)toggleWork();});
+    call.on('close',()=>{if(WORK.call===call){WORK.live=false;wsRefresh();wsSetStatus('待機中：パソコンからの接続を待っています');}});});
+  p.on('disconnected',()=>{setTimeout(()=>{if(!p.destroyed&&p.disconnected)try{p.reconnect();}catch(e){}},2500);});
+  p.on('error',e=>{const t=e&&e.type;
+    if(t==='unavailable-id'){wsSetStatus('前回の接続が残っています。少し待ってつなぎ直します…');p.destroy();WORK.peer=null;wsRetry=setTimeout(wsStart,6000);}
+    else if(t==='network'||t==='server-error'||t==='socket-error'||t==='socket-closed'){wsSetStatus('中継サーバーにつながりません。つなぎ直します…');p.destroy();WORK.peer=null;wsRetry=setTimeout(wsStart,8000);}
+    else if(t!=='peer-unavailable')wsSetStatus('エラー：'+t);});
+}
+function wsNewCode(){WS_SAVE.code=String(Math.floor(100000+Math.random()*900000));wsSaveNow();WORK.code=WS_SAVE.code;$('wscode').textContent=WORK.code.slice(0,3)+' '+WORK.code.slice(3);
+  if(WORK.peer){WORK.peer.destroy();WORK.peer=null;}WORK.live=false;wsRefresh();wsStart();}
+function wsCalibStart(){if(xrMode!=='ar'){caption('（手元の窓は「作業モードでVRに入る」で入ったときに使えます）',4);return;}
+  WORK.calib=true;wsHole.visible=true;caption('（右手のコントローラーをキーボードの中央に置き、手前に向けたままトリガーを引いてください）',8);}
+function wsCalibAt(c){WORK.calib=false;const p=c.position,q=new THREE.Euler().setFromQuaternion(c.quaternion,'YXZ');
+  Object.assign(WS_SAVE,{hx:p.x,hy:p.y+.13,hz:p.z,hyaw:q.y});wsSaveNow();wsLayout();caption('（手元の窓を合わせました。窓の中に本物のキーボードが見えます）',5);}
+const WORK_LINES={
+  start:['{smile}お仕事ですか？ 静かにしてますね。何かあったら呼んでください','{smile}今日は作業の日ですね。……邪魔しないように、そっと見てます'],
+  serve:['{smile}おつかれさまです。冷めないうちに、どうぞ','{smile}ひと息入れませんか。ここに置いておきますね','{worry}根を詰めすぎないでくださいね。温かいの、どうぞ'],
+  rest:['{worry}{name}、もう50分たちましたよ。少し目を休めませんか？','{smile}そろそろ休憩しませんか。窓の外、雨がきれいですよ','{worry}肩、こってませんか？ 一度のびをしてみてください'],
+  end:['{smile}おつかれさまでした。がんばりましたね','{smile}今日もおつかれさまでした。……ちゃんと進みました？']};
+function workServe(){setFocus(pickServer());caption(staffName()+'「'+pick(WORK_LINES.serve)+'」',6);
+  const d=DRINKS.find(x=>x.id===(usualDrink()||'coffee'))||DRINKS[0];
+  if(drinkObj){scene.remove(drinkObj);drinkObj=null;}
+  const make=()=>{if(drinkObj)scene.remove(drinkObj);drinkObj=makeDrink(d.id);scene.add(drinkObj);placeDrink();addOutlines(drinkObj);};
+  const st=staffOf(FOCUS);if(st&&st.prepare&&seatIdx===SPACES[space].spawn&&st.prepare(d.id,make))return;
+  if(st)st.serve();setTimeout(()=>audio.pour(),400);setTimeout(make,1300);}
+function toggleWork(){WORK.on=!WORK.on;wsGroup.visible=WORK.on;WORK.t=0;WORK.nextServe=rand(1500,2100);WORK.nextRest=3000;WORK.hidePanel=WORK.on;
+  if(WORK.on){wsStart();wsRefresh();const pc=presentChars();setFocus(pc.length?pick(pc):'yui');caption(staffName()+'「'+pick(WORK_LINES.start)+'」',6);}
+  else{WORK.calib=false;const pc=presentChars();setFocus(pc.length?pick(pc):'yui');caption(staffName()+'「'+pick(WORK_LINES.end)+'」',5);}
+  wsHole.visible=WORK.on&&xrMode==='ar';wsBtns.forEach(b=>b.redraw());redrawUI();}
+function updateWork(dt){wsCap.mesh.visible=WORK.on&&renderer.xr.isPresenting&&capT>0;if(!WORK.on||!active)return;WORK.t+=dt;
+  WORK.nextServe-=dt;if(WORK.nextServe<=0&&!choiceQ){WORK.nextServe=rand(1500,2100);workServe();}
+  if(WORK.t>=WORK.nextRest&&!choiceQ){WORK.nextRest+=3000;const pc=presentChars();setFocus(pc.length?pick(pc):'yui');caption(staffName()+'「'+pick(WORK_LINES.rest)+'」',8);}}
+{$('wscode').textContent=WORK.code.slice(0,3)+' '+WORK.code.slice(3);$('wsurl').textContent=WS_URL;
+ $('wsstart').addEventListener('click',()=>wsStart());$('wsnew').addEventListener('click',()=>wsNewCode());
+ if(WS_SAVE.on)setTimeout(wsStart,800);wsDrawPh();wsLayout();}
 
 /* ---------- arrival ---------- */
 function enter(sp){
@@ -2349,8 +2480,8 @@ function tick(){
     if(!xr){rig.rotation.y=SPACES[space].seats[seatIdx].yaw+yaw;camera.rotation.set(pitch,0,0);}
     else updateVRPointers();
     if(seatIdx===SPACES[space].spawn&&!breathOn){loveTime+=dt;if(loveTime>90){loveTime=0;addLove(1);}}
-    girlsTalkT-=dt;if(girlsTalkT<=0){girlsTalkT=startGirlsTalk()?rand(80,140):rand(10,20);}
-    idleT-=dt;if(idleT<=0){idleT=rand(55,95);if(!breathOn&&!choiceQ){const pc=presentChars();setFocus(pc.length?pick(pc):'yui');if(loveStage()>=2&&Math.random()<.3&&askQuestion()){}else{const pool=lovePool(TX().LOVE_IDLE,loveStage()).concat(memoryLines(),timeBand()==='late'||timeBand()==='dawn'?LATE_IDLE:[]);caption(staffName()+'「'+pick(pool)+'」');}}}
+    girlsTalkT-=dt;if(girlsTalkT<=0&&!WORK.on){girlsTalkT=startGirlsTalk()?rand(80,140):rand(10,20);}
+    idleT-=dt;updateWork(dt);if(idleT<=0){idleT=rand(55,95);if(!breathOn&&!choiceQ&&!WORK.on){const pc=presentChars();setFocus(pc.length?pick(pc):'yui');if(loveStage()>=2&&Math.random()<.3&&askQuestion()){}else{const pool=lovePool(TX().LOVE_IDLE,loveStage()).concat(memoryLines(),timeBand()==='late'||timeBand()==='dawn'?LATE_IDLE:[]);caption(staffName()+'「'+pick(pool)+'」');}}}
     uiClock+=dt;if(uiClock>20){uiClock=0;header.redraw();}
   }else{rig.rotation.y+=dt*.03;}
   if(capT>0){capT-=dt;if(capT<=0)$('caption').classList.remove('show');}
@@ -2641,8 +2772,8 @@ function setupVRM(vrm,base,sp,charId){charId=charId||'yui';
       if(!act&&!queue.length){
         if(atHome()||(o.char==='miya'&&!walking)){nextWander-=dt;nextVisit-=dt;nextBack-=dt;
           const playerHere=space===sp&&seatIdx===P.playerSeat&&!breathOn;
-          if(o.char==='yui'&&loveStageOf(o.char)>=5&&playerHere&&!lapDone&&!robots.some(r=>r&&r!==o&&r.space===sp&&r._visiting)&&sessionT>150&&!choiceQ&&Math.random()<dt/90){lapDone=true;setFocus('yui');showChoice(LAP_Q);}
-          if(nextVisit<=0&&playerHere&&!robots.some(r=>r&&r!==o&&r.space===sp&&r._visiting)){o.visit();const st=loveStageOf(o.char);nextVisit=[0,rand(300,420),rand(200,300),rand(150,240),rand(110,180),rand(80,140)][st];nextWander=rand(25,40);}
+          if(!WORK.on&&o.char==='yui'&&loveStageOf(o.char)>=5&&playerHere&&!lapDone&&!robots.some(r=>r&&r!==o&&r.space===sp&&r._visiting)&&sessionT>150&&!choiceQ&&Math.random()<dt/90){lapDone=true;setFocus('yui');showChoice(LAP_Q);}
+          if(nextVisit<=0&&playerHere&&!WORK.on&&!robots.some(r=>r&&r!==o&&r.space===sp&&r._visiting)){o.visit();const st=loveStageOf(o.char);nextVisit=[0,rand(300,420),rand(200,300),rand(150,240),rand(110,180),rand(80,140)][st];nextWander=rand(25,40);}
           else if(nextVisit<=0)nextVisit=rand(15,25);
           else if(nextBack<=0){o.backroom();nextBack=rand(120,220);nextWander=rand(25,40);}
           else if(nextWander<=0){const r=Math.random(),otherTour=robots.some(q=>q&&q!==o&&q.space===sp&&q._touring),canTour=!otherTour&&!(seatIdx!==P.playerSeat&&false);

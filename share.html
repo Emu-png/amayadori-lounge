@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>画面をお店へ送る</title>
+<style>
+:root{--ink:#07040e;--panel:rgba(12,8,22,.9);--cyan:#3ef2ff;--rose:#ff7ab6;--amber:#ffc27a;--green:#39ff9e;--text:#eef3ff;--dim:#98a0bd;--line:rgba(255,194,122,.28);
+  --body:"Hiragino Sans","Noto Sans JP","Yu Gothic","Meiryo",sans-serif;--mono:ui-monospace,"SFMono-Regular",Consolas,monospace;color-scheme:dark}
+[hidden]{display:none!important}
+html,body{margin:0;min-height:100%;background:radial-gradient(ellipse at 50% 120%,rgba(255,122,182,.16),transparent 60%),var(--ink);color:var(--text);font-family:var(--body)}
+main{width:min(640px,100%);box-sizing:border-box;margin:0 auto;padding:32px 16px;display:grid;gap:18px}
+.card{background:var(--panel);border:1px solid var(--line);padding:24px 22px;display:grid;gap:16px}
+h1{margin:0;font-size:22px;letter-spacing:.06em}
+h1 small{display:block;font-size:12px;color:var(--rose);letter-spacing:.3em;margin-top:6px;font-weight:400}
+p,li{margin:0;line-height:1.8;font-size:14px;color:#d3d9ee}
+ol{margin:0;padding-left:1.3em;display:grid;gap:4px}
+label{font-size:13px;color:var(--rose);letter-spacing:.06em}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+#code{font-family:var(--mono);font-size:26px;letter-spacing:.2em;color:var(--cyan);background:rgba(255,255,255,.06);border:1px solid var(--line);padding:8px 12px;width:9.5em;max-width:100%;box-sizing:border-box}
+#code:focus-visible{outline:2px solid var(--amber)}
+button{font:inherit;cursor:pointer}
+.go{font-weight:700;font-size:15px;border:0;padding:12px 20px;color:var(--ink);background:var(--green)}
+.go:disabled{background:#2a2840;color:#6b6a85;cursor:not-allowed}
+.stop{font-size:14px;border:1px solid var(--rose);padding:10px 16px;color:var(--text);background:rgba(255,122,182,.1)}
+button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+#status{font-family:var(--mono);font-size:13px;color:var(--amber);line-height:1.7;min-height:1.7em}
+video{width:100%;background:#000;border:1px solid var(--line);aspect-ratio:16/9}
+.hint{font-size:12.5px;color:var(--dim);line-height:1.7}
+</style>
+</head>
+<body>
+<main>
+  <div class="card">
+    <h1>画面をお店へ送る<small>AMAYADORI · 作業スペース</small></h1>
+    <ol>
+      <li>お店のページ（VRゴーグル側）で「パソコンの画面をつなぐ」を押し、接続コードを確認します。</li>
+      <li>下にそのコードを入力して「画面を共有してお店へ送る」を押します。</li>
+      <li>共有する画面（画面全体・ウィンドウ・タブ）を選びます。</li>
+    </ol>
+    <div style="display:grid;gap:6px">
+      <label for="code">接続コード（6桁）</label>
+      <div class="row">
+        <input id="code" inputmode="numeric" autocomplete="off" maxlength="7" placeholder="123 456">
+        <button id="go" class="go" type="button">画面を共有してお店へ送る</button>
+        <button id="stop" class="stop" type="button" hidden>共有をやめる</button>
+      </div>
+    </div>
+    <div id="status" role="status"></div>
+    <video id="preview" muted playsinline autoplay hidden></video>
+    <p class="hint">映像はこのパソコンとVRゴーグルの間で直接やりとりします。つなぐときだけ、無料の中継サービス（PeerJS）を使って相手を見つけます。キーボードとマウスはいつも通りこのパソコンで操作してください。このページは開いたままにしておいてください。</p>
+  </div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+(function(){
+const $=id=>document.getElementById(id);
+const KEY='amayadori.share.code';
+const inp=$('code'),go=$('go'),stopB=$('stop'),stat=$('status'),pv=$('preview');
+let peer=null,conn=null,call=null,stream=null;
+try{const c=localStorage.getItem(KEY);if(c)inp.value=c.slice(0,3)+' '+c.slice(3);}catch(e){}
+const digits=()=>inp.value.replace(/\D/g,'');
+inp.addEventListener('input',()=>{const d=digits().slice(0,6);inp.value=d.length>3?d.slice(0,3)+' '+d.slice(3):d;});
+const say=t=>{stat.textContent=t;};
+const boost=pc=>{try{for(const s of pc.getSenders()){if(!s.track||s.track.kind!=='video')continue;const p=s.getParameters();p.encodings=p.encodings&&p.encodings.length?p.encodings:[{}];p.encodings[0].maxBitrate=8000000;p.degradationPreference='maintain-resolution';s.setParameters(p).catch(()=>{});}}catch(e){}};
+function cleanup(msg){
+  try{if(conn&&conn.open)conn.send({bye:true});}catch(e){}
+  setTimeout(()=>{try{call&&call.close();}catch(e){}try{peer&&peer.destroy();}catch(e){}peer=conn=call=null;},300);
+  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;}
+  pv.srcObject=null;pv.hidden=true;stopB.hidden=true;go.disabled=false;if(msg)say(msg);
+}
+go.addEventListener('click',async()=>{
+  const code=digits();if(code.length!==6){say('6桁の接続コードを入力してください。');inp.focus();return;}
+  if(!window.Peer){say('接続の仕組みを読み込めませんでした。ページを再読み込みしてください。');return;}
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getDisplayMedia){say('このブラウザは画面共有に対応していません。パソコンの Chrome か Edge で開いてください。');return;}
+  try{localStorage.setItem(KEY,code);}catch(e){}
+  go.disabled=true;say('共有する画面を選んでください…');
+  try{stream=await navigator.mediaDevices.getDisplayMedia({video:{frameRate:{ideal:30,max:30},width:{ideal:1920},height:{ideal:1080},cursor:'always'},audio:false});}
+  catch(e){go.disabled=false;say('画面共有がキャンセルされました。');return;}
+  const tr=stream.getVideoTracks()[0];try{tr.contentHint='text';}catch(e){}
+  tr.addEventListener('ended',()=>cleanup('共有を終了しました。'));
+  pv.srcObject=stream;pv.hidden=false;stopB.hidden=false;
+  say('お店を探しています…');
+  peer=new Peer(undefined,{debug:0});
+  peer.on('open',()=>{
+    const target='amayadori-ws-'+code;
+    conn=peer.connect(target,{reliable:true});
+    conn.on('open',()=>{say('お店とつながりました。画面を送っています…');
+      call=peer.call(target,stream);
+      const pc=call.peerConnection;if(pc){pc.addEventListener('connectionstatechange',()=>{const s=pc.connectionState;
+        if(s==='connected'){boost(pc);say('送信中：お店の中に画面が映っています。');}
+        else if(s==='failed')say('映像を届けられませんでした。同じWi-Fiにつないで、もう一度試してください。');
+        else if(s==='disconnected')say('通信が途切れました。しばらく待つか、もう一度試してください。');});}
+      call.on('close',()=>{if(stream)say('お店側で接続が切れました。もう一度「画面を共有してお店へ送る」を押してください。');});});
+  });
+  peer.on('error',e=>{const t=e&&e.type;
+    if(t==='peer-unavailable')cleanup('お店が見つかりません。お店のページで「パソコンの画面をつなぐ」を押し、「待機中」になっているか、コードが合っているか確認してください。');
+    else if(t==='network'||t==='server-error'||t==='socket-error')cleanup('中継サーバーにつながりません。インターネット接続を確認して、もう一度試してください。');
+    else say('エラー：'+t);});
+});
+stopB.addEventListener('click',()=>cleanup('共有を終了しました。'));
+addEventListener('beforeunload',()=>{try{if(conn&&conn.open)conn.send({bye:true});}catch(e){}});
+})();
+</script>
+</body>
+</html>
