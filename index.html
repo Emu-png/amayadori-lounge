@@ -82,8 +82,14 @@ button.vr:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
 <div id="tip" hidden>ドラッグで見回す · 光るパネルや床の輪をクリック</div>
 <button id="dbgToggle" type="button" hidden>テスト</button>
 <div id="debug" hidden>
+  <div style="font-size:11px;opacity:.6">版 2026-11-28b</div>
   <div id="dbgStat"></div>
   <div class="grp"><button type="button" data-dbg="target" class="wide" id="dbgTarget">対象：ユイ（押すと切り替え）</button></div>
+  <h3>頬の赤み</h3>
+  <div class="grp">
+    <button type="button" data-dbg="blush" class="wide" id="dbgBlush">赤みを表示する</button>
+    <button type="button" data-dbg="bin">← 内側へ</button><button type="button" data-dbg="bout">外側へ →</button>
+  </div>
   <h3>親密度</h3>
   <div class="grp">
     <button type="button" data-dbg="p10">＋10</button><button type="button" data-dbg="p50">＋50</button>
@@ -102,11 +108,6 @@ button.vr:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
   <div class="grp">
     <button type="button" data-dbg="e:wink">ウインク</button><button type="button" data-dbg="e:shy">はにかみ</button>
     <button type="button" data-dbg="e:pout">拗ね顔</button><button type="button" data-dbg="e:worry">心配顔</button>
-  </div>
-  <h3>頬の赤み</h3>
-  <div class="grp">
-    <button type="button" data-dbg="blush" class="wide" id="dbgBlush">赤みを表示する</button>
-    <button type="button" data-dbg="bin">← 内側へ</button><button type="button" data-dbg="bout">外側へ →</button>
   </div>
   <h3>時間帯</h3>
   <div class="grp"><button type="button" data-dbg="band" class="wide" id="dbgBand">実際の時刻</button></div>
